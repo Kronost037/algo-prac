@@ -1,0 +1,14 @@
+{
+  "title": "Sum Nums",
+  "statement": "Given two numbers, output thier sum.",
+  "editorial": "",
+  "samples": [
+    {
+      "input": "3232 -3232",
+      "output": "0"
+    }
+  ],
+  "hidden": [
+    "10000 10000"
+  ]
+}
