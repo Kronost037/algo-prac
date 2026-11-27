@@ -22,7 +22,7 @@ import (
  "time"
 )
 type Sample struct { Input string `json:"input"`; Output string `json:"output"` }
-type Problem struct { GeneratorArgs [][]string `json:"generatorArgs,omitempty"`; Title string `json:"title"`; Statement string `json:"statement"`; Editorial string `json:"editorial"`; Samples []Sample `json:"samples"`; Hidden []string `json:"hidden,omitempty"` }
+type Problem struct { Difficulty string `json:"difficulty"`; GeneratorArgs [][]string `json:"generatorArgs,omitempty"`; Title string `json:"title"`; Statement string `json:"statement"`; Editorial string `json:"editorial"`; Samples []Sample `json:"samples"`; Hidden []string `json:"hidden,omitempty"` }
 type Entry struct { Problem; Dir,Section,Slug,Suite string; Solved bool }
 type Page struct { Groups map[string][]*Entry; Sections []string; Task *Entry; Verdict,Code string; Builder,Editorial bool; Form Problem; Section,Slug,Solution,Generator,Commands,Revision string }
 var catalog=map[string]*Entry{}
@@ -73,6 +73,7 @@ func build(e *Entry)(string,error){
 }
 func load(dir string,force bool)error{
  b,err:=os.ReadFile(dir+"/meta.json");if err!=nil{return err};e:=&Entry{Dir:dir,Section:filepath.Base(filepath.Dir(dir)),Slug:filepath.Base(dir)};if err=json.Unmarshal(b,&e.Problem);err!=nil{return err}
+ if err=e.validateDifficulty();err!=nil{return err}
  // Only reuse the suite named by the last successful build.
  marker:=dir+"/tests/current";old,_:=os.ReadFile(marker);e.Suite=filepath.Join(dir,"tests",string(old))
  cached,cacheErr:=os.ReadDir(e.Suite+"/in")
@@ -92,10 +93,21 @@ func judge(e *Entry,code string)(string,error){
  if v!=""{return fmt.Sprintf("%s · Case %d of %d · %d ms",v,i+1,len(files),elapsed.Milliseconds()),nil}}
  e.Solved=true;return fmt.Sprintf("Accepted · %d cases · Slowest %d ms",len(files),slow.Milliseconds()),nil
 }
+var difficultyRank = map[string]int{"easy": 0, "medium": 1, "hard": 2}
+
+func (p *Problem) validateDifficulty() error {
+ if p.Difficulty == "" { p.Difficulty = "easy" }
+ if _, ok := difficultyRank[p.Difficulty]; !ok {
+  return fmt.Errorf("unknown difficulty %q: choose easy, medium or hard", p.Difficulty)
+ }
+ return nil
+}
+
 func readBuilder(p *Page,e *Entry) error {
  meta,err:=os.ReadFile(e.Dir+"/meta.json")
  if err!=nil{return err}
  if err=json.Unmarshal(meta,&p.Form);err!=nil{return err}
+ if err=p.Form.validateDifficulty();err!=nil{return err}
  p.Section=e.Section
  p.Slug=e.Slug
  sol,err:=os.ReadFile(e.Dir+"/tests/sol.cpp")
@@ -110,12 +122,13 @@ func readBuilder(p *Page,e *Entry) error {
 }
 func saveProblem(r *http.Request,page *Page,existing *Entry)(string,error){
  section:=strings.ReplaceAll(strings.TrimSpace(r.FormValue("section"))," ","_");slug:=r.FormValue("slug")
- p:=Problem{Title:r.FormValue("title"),Statement:r.FormValue("statement"),Editorial:r.FormValue("editorial")}
+ p:=Problem{Difficulty:r.FormValue("difficulty"),Title:r.FormValue("title"),Statement:r.FormValue("statement"),Editorial:r.FormValue("editorial")}
  inputs,outputs:=r.PostForm["input"],r.PostForm["output"]
  if len(inputs)!=len(outputs){return "",errors.New("each sample needs an input and output field")}
  for i,input:=range inputs{p.Samples=append(p.Samples,Sample{input,outputs[i]})}
  for _,input:=range r.PostForm["hidden"]{if input!=""{p.Hidden=append(p.Hidden,input)}}
  page.Form=p;page.Section=section;page.Slug=slug;page.Commands=r.FormValue("commands");page.Solution=r.FormValue("solution");page.Generator=r.FormValue("generator");page.Revision=r.FormValue("revision")
+ if err:=p.validateDifficulty();err!=nil{return "",err}
  for line,command:=range strings.Split(page.Commands,"\n"){
   fields:=strings.Fields(command)
   if len(fields)==0{continue}
@@ -178,6 +191,11 @@ func serve(w http.ResponseWriter,r *http.Request){
  if (r.URL.Path=="/task"||p.Editorial)&&p.Task==nil||r.URL.Path!="/"&&r.URL.Path!="/task"&&!p.Builder&&!p.Editorial{http.NotFound(w,r);return}
  sections,_:=os.ReadDir("problems");for _,s:=range sections{if s.IsDir(){p.Sections=append(p.Sections,strings.ReplaceAll(s.Name(),"_"," "))}}
  keys:=[]string{};for k:=range catalog{keys=append(keys,k)};sort.Strings(keys);for _,k:=range keys{e:=catalog[k];s:=strings.ReplaceAll(e.Section,"_"," ");p.Groups[s]=append(p.Groups[s],e)}
+ for _, tasks := range p.Groups {
+  sort.SliceStable(tasks, func(i,j int) bool {
+   return difficultyRank[tasks[i].Difficulty] < difficultyRank[tasks[j].Difficulty]
+  })
+ }
  w.Header().Set("Content-Type","text/html; charset=utf-8");if err:=view.Execute(w,p);err!=nil{log.Print(err)}
 }
 func main(){root,_:=filepath.Abs("problems");paths,_:=filepath.Glob(root+"/*/*/meta.json");force:=len(os.Args)>1&&os.Args[1]=="build";failed:=false;for _,path:=range paths{if err:=load(filepath.Dir(path),force);err!=nil{log.Print(path,": ",err);failed=true}};if force{if failed{os.Exit(1)};return};log.Print("http://127.0.0.1:8000");log.Fatal(http.ListenAndServe("127.0.0.1:8000",http.HandlerFunc(serve)))}

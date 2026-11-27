@@ -1,4 +1,5 @@
 {
+  "difficulty": "easy",
   "title": "Last Occurrence",
   "statement": "Given an unsorted array, answer t independent queries. For each value x, print its last 1-based position in the original array, or -1 if absent.\n\nInput\nThe first line contains n and t. The next line contains n integers. The remaining input contains t query values.\n\nOutput\nPrint one answer per query, in query order.\n\nConstraints\n1 ≤ n, t ≤ 200000. All values are between -10⁹ and 10⁹.",
   "samples": [

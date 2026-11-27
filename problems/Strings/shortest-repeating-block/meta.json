@@ -1,4 +1,5 @@
 {
+  "difficulty": "medium",
   "title": "Shortest Repeating Block",
   "statement": "Find the length of the shortest prefix that can be repeated a whole number of times to produce s. Using the entire string once is allowed.\n\nInput\nOne nonempty string s of lowercase English letters.\n\nOutput\nPrint the shortest block length.\n\nConstraints\n1 \u2264 |s| \u2264 200000.",
   "samples": [

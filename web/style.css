@@ -276,3 +276,6 @@ button[data-remove]{font-size:.75rem;padding:.3rem .6rem}
 #editorial pre {background:#101412;border:1px solid var(--rule);border-radius:5px;padding:1rem;white-space:pre;overflow:auto}
 .case {border-bottom:1px solid var(--rule);padding-bottom:.75rem;margin-bottom:.75rem}
 button[data-remove],button[data-add] {background:var(--panel);color:var(--mint);border:1px solid var(--rule)}
+
+select[name=difficulty] {display:block;margin-top:.35rem;padding:.6rem .8rem;background:var(--panel);color:var(--ink);border:1px solid var(--rule);border-radius:4px;font:inherit}
+.row .difficulty {text-transform:capitalize}
