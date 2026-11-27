@@ -64,24 +64,44 @@ func build(e *Entry)(string,error){
  ok:=false;defer func(){if !ok{os.RemoveAll(suite)}}()
  for _,d:=range []string{"in","out"}{if err=os.Mkdir(filepath.Join(suite,d),0755);err!=nil{return "",err}}
  if err=compile(suite,tests+"/sol.cpp","sol");err!=nil{return "",err}
- inputs:=[]string{};for _,s:=range e.Samples{inputs=append(inputs,s.Input)};inputs=append(inputs,e.Hidden...)
- if _,err=os.Stat(tests+"/gen.cpp");err==nil{if err=compile(suite,tests+"/gen.cpp","gen");err!=nil{return "",err};runs:=e.GeneratorArgs;if len(runs)==0{runs=[][]string{nil}};for _,args:=range runs{input,err:=run(suite,"",5*time.Second,"./gen",generatorArguments(args)...);if err!=nil{return "",fmt.Errorf("generator %v: %w",args,err)};inputs=append(inputs,input)}}
- if len(inputs)==0{return "",errors.New("add at least one case")}
- for i,s:=range inputs{o,err:=run(suite,s,3*time.Second,"./sol");if err!=nil{return "",err};if i<len(e.Samples)&&!same(o,e.Samples[i].Output){return "",fmt.Errorf("sample %d: expected %q, reference produced %q",i+1,e.Samples[i].Output,o)}
- for dir,data:=range map[string]string{"in":s,"out":o}{if err=os.WriteFile(filepath.Join(suite,dir,fmt.Sprintf("%06d",i+1)),[]byte(data),0644);err!=nil{return "",err}}}
+ index := 0
+ writeCase := func(input string) error {
+  index++
+  output, err := run(suite, input, 3*time.Second, "./sol")
+  if err != nil { return fmt.Errorf("reference failed on case %d: %w", index, err) }
+  if index <= len(e.Samples) && !same(output, e.Samples[index-1].Output) {
+   return fmt.Errorf("sample %d: expected %q, reference produced %q", index, e.Samples[index-1].Output, output)
+  }
+  name := fmt.Sprintf("%06d", index)
+  if err := os.WriteFile(filepath.Join(suite,"in",name), []byte(input),0644); err != nil { return err }
+  return os.WriteFile(filepath.Join(suite,"out",name), []byte(output),0644)
+ }
+ for _, sample := range e.Samples { if err := writeCase(sample.Input); err != nil { return "",err } }
+ for _, input := range e.Hidden { if err := writeCase(input); err != nil { return "",err } }
+ if _, err := os.Stat(tests+"/gen.cpp"); err == nil {
+  if err := compile(suite,tests+"/gen.cpp","gen"); err != nil { return "",err }
+  runs := e.GeneratorArgs
+  if len(runs)==0 { runs=[][]string{nil} }
+  for _, args := range runs {
+   input,err:=run(suite,"",5*time.Second,"./gen",generatorArguments(args)...)
+   if err!=nil{return "",fmt.Errorf("generator %v: %w",args,err)}
+   if err:=writeCase(input);err!=nil{return "",err}
+  }
+ } else if !os.IsNotExist(err) || len(e.GeneratorArgs)>0 { return "",fmt.Errorf("generator: %w",err) }
+ if index==0 {return "",errors.New("add at least one case")}
+ stamp,_,err:=suiteKey(e)
+ if err!=nil{return "",err}
+ if err=os.WriteFile(suite+"/fingerprint",[]byte(stamp),0644);err!=nil{return "",err}
  os.Remove(suite+"/sol");os.Remove(suite+"/gen");ok=true;return suite,nil
 }
 func load(dir string,force bool)error{
  b,err:=os.ReadFile(dir+"/meta.json");if err!=nil{return err};e:=&Entry{Dir:dir,Section:filepath.Base(filepath.Dir(dir)),Slug:filepath.Base(dir)};if err=json.Unmarshal(b,&e.Problem);err!=nil{return err}
  if err=e.validateDifficulty();err!=nil{return err}
- // Only reuse the suite named by the last successful build.
- marker:=dir+"/tests/current";old,_:=os.ReadFile(marker);e.Suite=filepath.Join(dir,"tests",string(old))
- cached,cacheErr:=os.ReadDir(e.Suite+"/in")
- stale:=len(e.GeneratorArgs)>0 && len(cached)!=len(e.Samples)+len(e.Hidden)+len(e.GeneratorArgs)
- if force||len(old)==0||cacheErr!=nil||stale{suite,err:=build(e);if err!=nil{return err};if err=os.WriteFile(marker+".tmp",[]byte(filepath.Base(suite)),0644);err!=nil{return err};if err=os.Rename(marker+".tmp",marker);err!=nil{return err};if strings.HasPrefix(string(old),"suite-")&&filepath.Base(string(old))==string(old){os.RemoveAll(e.Suite)};e.Suite=suite}
+ if force { if err:=prepareSuite(e,true);err!=nil{return err} }
  catalog[e.Section+"/"+e.Slug]=e;return nil
 }
 func judge(e *Entry,code string)(string,error){
+ if err:=prepareSuite(e,false);err!=nil{return "",fmt.Errorf("test suite: %w",err)}
  tmp,err:=os.MkdirTemp("","practice-");if err!=nil{return "",err};defer os.RemoveAll(tmp)
  if err=os.WriteFile(tmp+"/main.cpp",[]byte(code),0600);err!=nil{return "",err}
  if err=compile(tmp,"main.cpp","main");err!=nil{return "Compilation failed\n"+err.Error(),nil}
@@ -151,7 +171,7 @@ func saveProblem(r *http.Request,page *Page,existing *Entry)(string,error){
    if err!=nil{return err};rel,err:=filepath.Rel(existing.Dir,path);if err!=nil{return err}
    if rel=="."{return nil}
    if filepath.Dir(rel)=="tests"&&item.IsDir()&&strings.HasPrefix(item.Name(),"suite-"){return filepath.SkipDir}
-   if rel=="tests/current"||rel=="tests/gen.cpp"{return nil}
+   if rel=="meta.json"||rel=="tests/sol.cpp"||rel=="tests/current"||rel=="tests/gen.cpp"{return nil}
    target:=filepath.Join(dir,rel)
    if item.IsDir(){return os.MkdirAll(target,0755)}
    if item.Type()&os.ModeSymlink!=0{link,err:=os.Readlink(path);if err!=nil{return err};return os.Symlink(link,target)}
@@ -198,4 +218,26 @@ func serve(w http.ResponseWriter,r *http.Request){
  }
  w.Header().Set("Content-Type","text/html; charset=utf-8");if err:=view.Execute(w,p);err!=nil{log.Print(err)}
 }
-func main(){root,_:=filepath.Abs("problems");paths,_:=filepath.Glob(root+"/*/*/meta.json");force:=len(os.Args)>1&&os.Args[1]=="build";failed:=false;for _,path:=range paths{if err:=load(filepath.Dir(path),force);err!=nil{log.Print(path,": ",err);failed=true}};if force{if failed{os.Exit(1)};return};log.Print("http://127.0.0.1:8000");log.Fatal(http.ListenAndServe("127.0.0.1:8000",http.HandlerFunc(serve)))}
+func main() {
+ root,err:=filepath.Abs("problems")
+ if err!=nil {log.Fatal(err)}
+ paths,err:=filepath.Glob(filepath.Join(root,"*","*","meta.json"))
+ if err!=nil {log.Fatal(err)}
+ args:=os.Args[1:]
+ building:=len(args)>0
+ if building && (args[0]!="build" || len(args)>2) {log.Fatal("usage: go run . [build [SECTION/slug]]")}
+ if len(args)==2 {
+  parts:=strings.Split(args[1],"/")
+  if len(parts)!=2 || !valid.MatchString(parts[0]) || !valid.MatchString(parts[1]) {log.Fatal("expected SECTION/slug")}
+  paths=[]string{filepath.Join(root,parts[0],parts[1],"meta.json")}
+ }
+ failed:=false
+ for _,path:=range paths {
+  dir:=filepath.Dir(path)
+  if strings.HasPrefix(filepath.Base(dir),"."){continue}
+  if err:=load(dir,building);err!=nil {log.Printf("%s: %v",dir,err);failed=true}
+ }
+ if building { if failed {os.Exit(1)};return }
+ log.Print("http://127.0.0.1:8000")
+ log.Fatal(http.ListenAndServe("127.0.0.1:8000",http.HandlerFunc(serve)))
+}

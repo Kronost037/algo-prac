@@ -81,3 +81,31 @@ func TestGeneratorIntegerLimits(t *testing.T) {
     }
     if args[0] != "INT_MIN" { t.Fatal("generator expansion changed the editor's command") }
 }
+
+func TestSuiteUpdatesWithSameCaseCount(t *testing.T) {
+    dir := t.TempDir()
+    tests := filepath.Join(dir,"tests")
+    if err := os.Mkdir(tests,0755); err != nil { t.Fatal(err) }
+    write := func(name, data string) {
+        t.Helper()
+        if err:=os.WriteFile(filepath.Join(tests,name),[]byte(data),0644);err!=nil {t.Fatal(err)}
+    }
+    write("sol.cpp","#include <iostream>\nint main(){int x;std::cin>>x;std::cout<<x;}")
+    e:=&Entry{Dir:dir,Problem:Problem{Hidden:[]string{"1"}}}
+    prepare:=func(){t.Helper();if err:=prepareSuite(e,false);err!=nil{t.Fatal(err)}}
+    prepare()
+    first:=e.Suite
+    prepare()
+    if e.Suite!=first {t.Fatal("unchanged suite rebuilt")}
+    e.Hidden[0]="2"
+    prepare()
+    if e.Suite==first {t.Fatal("changed input reused old suite")}
+    output:=func()string{t.Helper();b,err:=os.ReadFile(e.Suite+"/out/000001");if err!=nil{t.Fatal(err)};return string(b)}
+    if output()!="2"{t.Fatal("stale input")}
+    write("sol.cpp","#include <iostream>\nint main(){int x;std::cin>>x;std::cout<<x+1;}")
+    prepare()
+    if output()!="3"{t.Fatal("stale reference output")}
+    if err:=os.Remove(e.Suite+"/out/000001");err!=nil{t.Fatal(err)}
+    prepare()
+    if output()!="3"{t.Fatal("missing output was not repaired")}
+}
