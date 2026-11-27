@@ -10,4 +10,4 @@ Each problem lives at problems/SECTION/slug/. meta.json contains the title, stat
 
 Generators can include the vendored upstream [testlib.h](https://github.com/MikeMirzayanov/testlib). Put argument lists in the optional meta.json generatorArgs array; each list runs the generator once. Without this field, gen.cpp runs once without arguments as before.
 
-Last Occurrence covers all 120 arrays of length 1–4 over {-1, 0, 1}, with queries for every alphabet value, repeated queries and absent neighbors. Ten hand-written scenarios exercise both integer bounds and singleton hit/miss queries. Ten maximum-size cases use two deterministic seeds for each of five distributions (mixed, absent, duplicate-heavy, sorted and reverse sorted).
+Commands accept INT_MIN, INT_MAX, LONG_MIN, and LONG_MAX as standalone arguments (Linux signed 32-bit int and 64-bit long). Each expands to a decimal value before the generator runs.

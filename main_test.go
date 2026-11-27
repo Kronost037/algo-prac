@@ -71,3 +71,13 @@ func TestBuilderCommandsAndEdit(t *testing.T) {
         if w.Code!=200||!strings.Contains(w.Body.String(),"</html>"){t.Fatalf("%s: %d",route,w.Code)}
     }
 }
+
+func TestGeneratorIntegerLimits(t *testing.T) {
+    args := []string{"INT_MIN", "INT_MAX", "LONG_MIN", "LONG_MAX", "prefix_INT_MAX", "37"}
+    want := []string{"-2147483648", "2147483647", "-9223372036854775808", "9223372036854775807", "prefix_INT_MAX", "37"}
+    got := generatorArguments(args)
+    for i := range want {
+        if got[i] != want[i] { t.Errorf("argument %d = %q, want %q", i, got[i], want[i]) }
+    }
+    if args[0] != "INT_MIN" { t.Fatal("generator expansion changed the editor's command") }
+}

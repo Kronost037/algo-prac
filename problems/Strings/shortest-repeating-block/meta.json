@@ -1,0 +1,57 @@
+{
+  "title": "Shortest Repeating Block",
+  "statement": "Find the length of the shortest prefix that can be repeated a whole number of times to produce s. Using the entire string once is allowed.\n\nInput\nOne nonempty string s of lowercase English letters.\n\nOutput\nPrint the shortest block length.\n\nConstraints\n1 ≤ |s| ≤ 200000.",
+  "samples": [
+    {
+      "input": "abcabcabc\n",
+      "output": "3\n"
+    },
+    {
+      "input": "abababa\n",
+      "output": "7\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "uniform",
+      "1",
+      "0"
+    ],
+    [
+      "uniform",
+      "200000",
+      "1"
+    ],
+    [
+      "alternating",
+      "199999",
+      "0"
+    ],
+    [
+      "alternating",
+      "200000",
+      "1"
+    ],
+    [
+      "broken",
+      "199998",
+      "0"
+    ],
+    [
+      "broken",
+      "200000",
+      "1"
+    ],
+    [
+      "random",
+      "12345",
+      "0"
+    ],
+    [
+      "random",
+      "200000",
+      "1"
+    ]
+  ],
+  "editorial": "Let pi[i] be the length of the longest proper prefix of s[0..i] that is also a suffix. If pi[n−1] = b, the first b characters match the last b. Thus shifting by p = n−b matches every overlapping character. Any smaller positive shift would give a longer matching prefix and suffix, so p is the smallest period.\n\nA period can leave an incomplete final block. For abababa the smallest period is 2, but 2 does not divide 7. Why can we then return n? If the string were two or more copies of a block of length d, shifting its repeating block by p would preserve every character (there are at least two copies and p ≤ d). Positions in that block spaced by gcd(d,p) would therefore agree. Minimality of p forces gcd(d,p) = p, so p divides d and hence n.\n\nBuild pi left to right. On a mismatch, fall back to the next shorter matching prefix using pi[j−1]. Each fallback decreases j, and j increases at most once per character, giving O(n) time and O(n) extra space.\n~~~\n#include <iostream>\n#include <string>\n#include <vector>\n\nint main() {\n    std::string s;\n    std::cin >> s;\n    const int n = static_cast<int>(s.size());\n    std::vector<int> pi(n);\n    for (int i = 1; i < n; ++i) {\n        int j = pi[i - 1];\n        while (j > 0 && s[i] != s[j]) j = pi[j - 1];\n        if (s[i] == s[j]) ++j;\n        pi[i] = j;\n    }\n    const int p = n - pi.back();\n    std::cout << (n % p == 0 ? p : n) << '\\n';\n}\n~~~"
+}

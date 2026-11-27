@@ -1,14 +1,38 @@
 {
   "title": "Sum Nums",
-  "statement": "Given two numbers, output thier sum.",
-  "editorial": "",
+  "statement": "Given two signed 32-bit integers, print their sum.\n\nInput\nOne line contains two integers a and b, each between −2147483648 and 2147483647 inclusive.\n\nOutput\nPrint the exact value of a + b.",
+  "editorial": "The only arithmetic operation is addition. Choosing the type matters: 2147483647 + 1 is a valid input whose answer is 2147483648. The possible sums range from −4294967296 to 4294967294, all representable in a signed 64-bit integer.\n\nRead both operands as long long so the addition itself uses that type. Assigning a + b to a long long after adding two int operands would widen the result too late.\n~~~\nlong long a, b;\ncin >> a >> b;\ncout << a + b << '\\n';\n~~~\nThis uses O(1) time and O(1) extra space.",
   "samples": [
     {
       "input": "3232 -3232",
       "output": "0"
     }
   ],
-  "hidden": [
-    "10000 10000"
+  "generatorArgs": [
+    [],
+    [
+      "INT_MAX",
+      "INT_MAX"
+    ],
+    [
+      "INT_MIN",
+      "INT_MIN"
+    ],
+    [
+      "INT_MIN",
+      "INT_MAX"
+    ],
+    [
+      "INT_MAX",
+      "1"
+    ],
+    [
+      "INT_MIN",
+      "-1"
+    ],
+    [
+      "0",
+      "0"
+    ]
   ]
 }

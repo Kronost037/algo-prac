@@ -47,13 +47,25 @@ func run(dir string,input string,limit time.Duration,name string,args ...string)
 }
 func compile(dir,src,bin string)error{lib,err:=filepath.Abs("lib");if err!=nil{return err};_,err=run(dir,"",30*time.Second,"g++","-std=c++20","-O2","-I",lib,src,"-o",bin);return err}
 func same(a,b string)bool{return strings.Join(strings.Fields(a)," ")==strings.Join(strings.Fields(b)," ")}
+// Linux LP64 C++ integer limits. Keep the author's symbolic spelling on disk.
+func generatorArguments(args []string) []string {
+ limits := map[string]string{
+  "INT_MIN": "-2147483648", "INT_MAX": "2147483647",
+  "LONG_MIN": "-9223372036854775808", "LONG_MAX": "9223372036854775807",
+ }
+ expanded := append([]string(nil), args...)
+ for i, arg := range expanded {
+  if value, ok := limits[arg]; ok { expanded[i] = value }
+ }
+ return expanded
+}
 func build(e *Entry)(string,error){
  tests:=filepath.Join(e.Dir,"tests");suite,err:=os.MkdirTemp(tests,"suite-");if err!=nil{return "",err}
  ok:=false;defer func(){if !ok{os.RemoveAll(suite)}}()
  for _,d:=range []string{"in","out"}{if err=os.Mkdir(filepath.Join(suite,d),0755);err!=nil{return "",err}}
  if err=compile(suite,tests+"/sol.cpp","sol");err!=nil{return "",err}
  inputs:=[]string{};for _,s:=range e.Samples{inputs=append(inputs,s.Input)};inputs=append(inputs,e.Hidden...)
- if _,err=os.Stat(tests+"/gen.cpp");err==nil{if err=compile(suite,tests+"/gen.cpp","gen");err!=nil{return "",err};runs:=e.GeneratorArgs;if len(runs)==0{runs=[][]string{nil}};for _,args:=range runs{input,err:=run(suite,"",5*time.Second,"./gen",args...);if err!=nil{return "",fmt.Errorf("generator %v: %w",args,err)};inputs=append(inputs,input)}}
+ if _,err=os.Stat(tests+"/gen.cpp");err==nil{if err=compile(suite,tests+"/gen.cpp","gen");err!=nil{return "",err};runs:=e.GeneratorArgs;if len(runs)==0{runs=[][]string{nil}};for _,args:=range runs{input,err:=run(suite,"",5*time.Second,"./gen",generatorArguments(args)...);if err!=nil{return "",fmt.Errorf("generator %v: %w",args,err)};inputs=append(inputs,input)}}
  if len(inputs)==0{return "",errors.New("add at least one case")}
  for i,s:=range inputs{o,err:=run(suite,s,3*time.Second,"./sol");if err!=nil{return "",err};if i<len(e.Samples)&&!same(o,e.Samples[i].Output){return "",fmt.Errorf("sample %d: expected %q, reference produced %q",i+1,e.Samples[i].Output,o)}
  for dir,data:=range map[string]string{"in":s,"out":o}{if err=os.WriteFile(filepath.Join(suite,dir,fmt.Sprintf("%06d",i+1)),[]byte(data),0644);err!=nil{return "",err}}}

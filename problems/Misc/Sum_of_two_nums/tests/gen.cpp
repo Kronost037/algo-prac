@@ -1,14 +1,15 @@
 #include "testlib.h"
-#include <bits/stdc++.h>
+#include <climits>
+#include <iostream>
 
-using namespace std;
-
-int main(int argc, char* argv[]) {
+int main(int argc, char** argv) {
     registerGen(argc, argv, 1);
-
-    int a = rnd.next(INT_MIN, INT_MAX);
-    int b = rnd.next(INT_MIN, INT_MAX);
-
-    cout << a << " " << b << '\n';
-    return 0;
+    if (argc == 1) {
+        std::cout << rnd.next(INT_MIN, INT_MAX) << ' ' << rnd.next(INT_MIN, INT_MAX) << '\n';
+        return 0;
+    }
+    ensuref(argc == 3, "expected two signed 32-bit operands");
+    const int a = opt<int>(1);
+    const int b = opt<int>(2);
+    std::cout << a << ' ' << b << '\n';
 }

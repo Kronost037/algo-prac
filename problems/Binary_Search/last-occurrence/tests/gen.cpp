@@ -8,6 +8,16 @@ int main(int argc, char** argv) {
     registerGen(argc, argv, 1);
     ensuref(argc == 3, "expected distribution and seed");
     const std::string mode = argv[1];
+    // Exactly one judge input per invocation. Variant selects the boundary.
+    const int bound = std::string(argv[2]) == "1" ? -1000000000 : 1000000000;
+    if (mode == "singleton" || mode == "boundary") {
+        if (mode == "singleton")
+            std::cout << "1 3\n" << bound << "\n" << bound << " 0 " << -bound << '\n';
+        else
+            std::cout << "5 5\n" << bound << " 0 " << -bound << " 0 " << bound
+                      << "\n0 " << bound << ' ' << -bound << " 1 0\n";
+        return 0;
+    }
     constexpr int n = 200000;
     std::vector<int> values(n);
     for (int& value : values)
