@@ -2,6 +2,8 @@ package main
 
 import (
  "bytes"
+ "crypto/sha256"
+ "io/fs"
  "context"
  "encoding/json"
  "errors"
@@ -22,7 +24,7 @@ import (
 type Sample struct { Input string `json:"input"`; Output string `json:"output"` }
 type Problem struct { GeneratorArgs [][]string `json:"generatorArgs,omitempty"`; Title string `json:"title"`; Statement string `json:"statement"`; Editorial string `json:"editorial"`; Samples []Sample `json:"samples"`; Hidden []string `json:"hidden,omitempty"` }
 type Entry struct { Problem; Dir,Section,Slug,Suite string; Solved bool }
-type Page struct { Groups map[string][]*Entry; Sections []string; Task *Entry; Verdict,Code string; Builder bool }
+type Page struct { Groups map[string][]*Entry; Sections []string; Task *Entry; Verdict,Code string; Builder,Editorial bool; Form Problem; Section,Slug,Solution,Generator,Commands,Revision string }
 var catalog=map[string]*Entry{}
 var gate sync.Mutex
 var valid=regexp.MustCompile("^[A-Za-z0-9_-]+$")
@@ -78,30 +80,90 @@ func judge(e *Entry,code string)(string,error){
  if v!=""{return fmt.Sprintf("%s · Case %d of %d · %d ms",v,i+1,len(files),elapsed.Milliseconds()),nil}}
  e.Solved=true;return fmt.Sprintf("Accepted · %d cases · Slowest %d ms",len(files),slow.Milliseconds()),nil
 }
-func create(r *http.Request)(string,error){
+func readBuilder(p *Page,e *Entry) error {
+ meta,err:=os.ReadFile(e.Dir+"/meta.json")
+ if err!=nil{return err}
+ if err=json.Unmarshal(meta,&p.Form);err!=nil{return err}
+ p.Section=e.Section
+ p.Slug=e.Slug
+ sol,err:=os.ReadFile(e.Dir+"/tests/sol.cpp")
+ if err!=nil{return err}
+ gen,err:=os.ReadFile(e.Dir+"/tests/gen.cpp")
+ if err!=nil&&!os.IsNotExist(err){return err}
+ p.Solution=string(sol)
+ p.Generator=string(gen)
+ for _,args:=range p.Form.GeneratorArgs{p.Commands+=strings.TrimSpace("gen "+strings.Join(args," "))+"\n"}
+ p.Revision=fmt.Sprintf("%x",sha256.Sum256([]byte(fmt.Sprintf("%q:%q:%q",meta,sol,gen))))
+ return nil
+}
+func saveProblem(r *http.Request,page *Page,existing *Entry)(string,error){
  section:=strings.ReplaceAll(strings.TrimSpace(r.FormValue("section"))," ","_");slug:=r.FormValue("slug")
+ p:=Problem{Title:r.FormValue("title"),Statement:r.FormValue("statement"),Editorial:r.FormValue("editorial")}
+ inputs,outputs:=r.PostForm["input"],r.PostForm["output"]
+ if len(inputs)!=len(outputs){return "",errors.New("each sample needs an input and output field")}
+ for i,input:=range inputs{p.Samples=append(p.Samples,Sample{input,outputs[i]})}
+ for _,input:=range r.PostForm["hidden"]{if input!=""{p.Hidden=append(p.Hidden,input)}}
+ page.Form=p;page.Section=section;page.Slug=slug;page.Commands=r.FormValue("commands");page.Solution=r.FormValue("solution");page.Generator=r.FormValue("generator");page.Revision=r.FormValue("revision")
+ for line,command:=range strings.Split(page.Commands,"\n"){
+  fields:=strings.Fields(command)
+  if len(fields)==0{continue}
+  if fields[0]!="gen"&&fields[0]!="./gen"{return "",fmt.Errorf("command line %d must start with gen",line+1)}
+  if strings.TrimSpace(page.Generator)==""{return "",errors.New("add generator source for the listed commands")}
+  p.GeneratorArgs=append(p.GeneratorArgs,fields[1:])
+ }
  if !valid.MatchString(section)||!valid.MatchString(slug){return "",errors.New("invalid section or slug")}
+ if existing!=nil{
+  var disk Page
+  if err:=readBuilder(&disk,existing);err!=nil{return "",err}
+  if disk.Revision!=page.Revision{return "",errors.New("problem changed since opening; reload before saving")}
+ }
  parent,_:=filepath.Abs(filepath.Join("problems",section));if err:=os.MkdirAll(parent,0755);err!=nil{return "",err}
+ dest:=filepath.Join(parent,slug)
+ if existing==nil||dest!=existing.Dir{if _,err:=os.Stat(dest);!os.IsNotExist(err){return "",errors.New("destination already exists")}}
  dir,err:=os.MkdirTemp(parent,".draft-");if err!=nil{return "",err};defer os.RemoveAll(dir)
- p:=Problem{Title:r.FormValue("title"),Statement:r.FormValue("statement"),Editorial:r.FormValue("editorial"),Samples:[]Sample{{r.FormValue("input"),r.FormValue("output")}}}
- if s:=r.FormValue("hidden");s!=""{p.Hidden=[]string{s}}
- if err=os.Mkdir(dir+"/tests",0755);err!=nil{return "",err};b,_:=json.MarshalIndent(p,"","  ")
+ if existing!=nil{
+  err=filepath.WalkDir(existing.Dir,func(path string,item fs.DirEntry,err error)error{
+   if err!=nil{return err};rel,err:=filepath.Rel(existing.Dir,path);if err!=nil{return err}
+   if rel=="."{return nil}
+   if filepath.Dir(rel)=="tests"&&item.IsDir()&&strings.HasPrefix(item.Name(),"suite-"){return filepath.SkipDir}
+   if rel=="tests/current"||rel=="tests/gen.cpp"{return nil}
+   target:=filepath.Join(dir,rel)
+   if item.IsDir(){return os.MkdirAll(target,0755)}
+   if item.Type()&os.ModeSymlink!=0{link,err:=os.Readlink(path);if err!=nil{return err};return os.Symlink(link,target)}
+   data,err:=os.ReadFile(path);if err!=nil{return err};info,err:=item.Info();if err!=nil{return err};return os.WriteFile(target,data,info.Mode().Perm())
+  });if err!=nil{return "",err}
+ }
+ if err=os.MkdirAll(dir+"/tests",0755);err!=nil{return "",err};b,_:=json.MarshalIndent(p,"","  ")
  files:=map[string]string{"meta.json":string(b),"tests/sol.cpp":r.FormValue("solution")};if g:=r.FormValue("generator");g!=""{files["tests/gen.cpp"]=g}
  for path,data:=range files{if err=os.WriteFile(dir+"/"+path,[]byte(data),0644);err!=nil{return "",err}}
  suite,err:=build(&Entry{Problem:p,Dir:dir});if err!=nil{return "",err};if err=os.WriteFile(dir+"/tests/current",[]byte(filepath.Base(suite)),0644);err!=nil{return "",err}
- dest:=filepath.Join(parent,slug);if _,err=os.Stat(dest);!os.IsNotExist(err){return "",errors.New("destination already exists")};if err=os.Rename(dir,dest);err!=nil{return "",err};return section+"/"+slug,load(dest,false)
+ backup:=""
+ if existing!=nil{
+  backup,err=os.MkdirTemp(filepath.Dir(existing.Dir),".previous-");if err!=nil{return "",err}
+  if err=os.Rename(existing.Dir,backup+"/problem");err!=nil{os.Remove(backup);return "",err}
+ }
+ if err=os.Rename(dir,dest);err!=nil{
+  if backup!=""{if restore:=os.Rename(backup+"/problem",existing.Dir);restore!=nil{return "",fmt.Errorf("restore previous problem from %s: %w",backup,restore)};os.Remove(backup)}
+  return "",err
+ }
+ if existing!=nil{delete(catalog,existing.Section+"/"+existing.Slug);os.RemoveAll(backup)}
+ key:=section+"/"+slug
+ catalog[key]=&Entry{Problem:p,Section:section,Slug:slug,Dir:dest,Suite:filepath.Join(dest,"tests",filepath.Base(suite))}
+ return key,nil
 }
 func serve(w http.ResponseWriter,r *http.Request){
  if r.Host!="127.0.0.1:8000"&&r.Host!="localhost:8000"{http.Error(w,"invalid host",403);return}
- if r.Method=="GET" && (r.URL.Path=="/assets/app.js" || r.URL.Path=="/assets/style.css"){http.ServeFile(w,r,"web/"+filepath.Base(r.URL.Path));return}
+ if r.Method=="GET" && (r.URL.Path=="/assets/app.js" || r.URL.Path=="/assets/prism.js" || r.URL.Path=="/assets/style.css"){http.ServeFile(w,r,"web/"+filepath.Base(r.URL.Path));return}
  gate.Lock();defer gate.Unlock()
- p:=Page{Groups:map[string][]*Entry{},Builder:r.URL.Path=="/builder"};key:=r.URL.Query().Get("id");p.Task=catalog[key]
+ p:=Page{Groups:map[string][]*Entry{},Builder:r.URL.Path=="/builder"};key:=r.URL.Query().Get("id");p.Task=catalog[key];p.Editorial=r.URL.Path=="/editorial"
+ if key!=""&&p.Task==nil{http.NotFound(w,r);return}
+ if p.Builder&&r.Method=="GET"&&p.Task!=nil{if err:=readBuilder(&p,p.Task);err!=nil{http.Error(w,err.Error(),500);return}}
  if r.Method=="POST"{if r.Header.Get("Origin")!="http://"+r.Host{http.Error(w,"invalid origin",403);return};r.Body=http.MaxBytesReader(w,r.Body,1<<20);if err:=r.ParseForm();err!=nil{http.Error(w,"invalid form",400);return}
  var err error
- switch {case p.Builder:key,err=create(r);if err==nil{http.Redirect(w,r,"/task?id="+key,303);return}
+ switch {case p.Builder:key,err=saveProblem(r,&p,p.Task);if err==nil{http.Redirect(w,r,"/task?id="+key,303);return}
  case r.URL.Path=="/task"&&p.Task!=nil:p.Code=r.FormValue("code");p.Verdict,err=judge(p.Task,p.Code)
  default:http.NotFound(w,r);return};if err!=nil{p.Verdict=err.Error()}}
- if r.URL.Path=="/task"&&p.Task==nil||r.URL.Path!="/"&&r.URL.Path!="/task"&&!p.Builder{http.NotFound(w,r);return}
+ if (r.URL.Path=="/task"||p.Editorial)&&p.Task==nil||r.URL.Path!="/"&&r.URL.Path!="/task"&&!p.Builder&&!p.Editorial{http.NotFound(w,r);return}
  sections,_:=os.ReadDir("problems");for _,s:=range sections{if s.IsDir(){p.Sections=append(p.Sections,strings.ReplaceAll(s.Name(),"_"," "))}}
  keys:=[]string{};for k:=range catalog{keys=append(keys,k)};sort.Strings(keys);for _,k:=range keys{e:=catalog[k];s:=strings.ReplaceAll(e.Section,"_"," ");p.Groups[s]=append(p.Groups[s],e)}
  w.Header().Set("Content-Type","text/html; charset=utf-8");if err:=view.Execute(w,p);err!=nil{log.Print(err)}

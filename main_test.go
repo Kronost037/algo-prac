@@ -29,3 +29,45 @@ func TestBundledTask(t *testing.T) {
         if w.Code != 200 || !strings.Contains(w.Body.String(),"</html>") { t.Fatalf("render %s: %d",path,w.Code) }
     }
 }
+
+func TestBuilderCommandsAndEdit(t *testing.T) {
+    sectionDir,err:=os.MkdirTemp("problems","builder-test-")
+    if err!=nil{t.Fatal(err)}
+    defer os.RemoveAll(sectionDir)
+    section:=filepath.Base(sectionDir)
+    key:=section+"/sum"
+    defer delete(catalog,key)
+    form:=url.Values{
+        "section":{section},"slug":{"sum"},"title":{"Sum"},
+        "solution":{"#include <iostream>\nint main(){int x;std::cin>>x;std::cout<<x;}"},
+        "generator":{"#include <iostream>\nint main(int argc,char**v){if(argc!=4)return 1;std::cout<<v[1];}"},
+        "commands":{"gen 12 21 32\ngen 99 1 2"},
+    }
+    post:=func(existing *Entry)error{
+        req:=httptest.NewRequest("POST","http://localhost:8000/builder",strings.NewReader(form.Encode()))
+        req.Header.Set("Content-Type","application/x-www-form-urlencoded")
+        if err:=req.ParseForm();err!=nil{return err}
+        _,err:=saveProblem(req,&Page{},existing)
+        return err
+    }
+    if err:=post(nil);err!=nil{t.Fatal(err)}
+    e:=catalog[key]
+    for i,want:=range []string{"12","99"}{
+        path:=[]string{"000001","000002"}[i]
+        got,err:=os.ReadFile(filepath.Join(e.Suite,"in",path))
+        if err!=nil||string(got)!=want{t.Fatalf("input %s = %q (%v)",path,got,err)}
+    }
+    var page Page
+    if err:=readBuilder(&page,e);err!=nil{t.Fatal(err)}
+    form.Set("revision",page.Revision)
+    form.Set("solution","broken")
+    if err:=post(e);err==nil{t.Fatal("accepted broken edit")}
+    form.Set("solution",page.Solution)
+    form.Set("editorial","Example\n~~~\nint x;\n~~~")
+    if err:=post(e);err!=nil{t.Fatal(err)}
+    for _,route:=range []string{"/builder","/editorial","/task"}{
+        w:=httptest.NewRecorder()
+        serve(w,httptest.NewRequest("GET","http://localhost:8000"+route+"?id="+key,nil))
+        if w.Code!=200||!strings.Contains(w.Body.String(),"</html>"){t.Fatalf("%s: %d",route,w.Code)}
+    }
+}
