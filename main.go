@@ -20,7 +20,7 @@ import (
  "time"
 )
 type Sample struct { Input string `json:"input"`; Output string `json:"output"` }
-type Problem struct { Title string `json:"title"`; Statement string `json:"statement"`; Editorial string `json:"editorial"`; Samples []Sample `json:"samples"`; Hidden []string `json:"hidden,omitempty"` }
+type Problem struct { GeneratorArgs [][]string `json:"generatorArgs,omitempty"`; Title string `json:"title"`; Statement string `json:"statement"`; Editorial string `json:"editorial"`; Samples []Sample `json:"samples"`; Hidden []string `json:"hidden,omitempty"` }
 type Entry struct { Problem; Dir,Section,Slug,Suite string; Solved bool }
 type Page struct { Groups map[string][]*Entry; Sections []string; Task *Entry; Verdict,Code string; Builder bool }
 var catalog=map[string]*Entry{}
@@ -43,7 +43,7 @@ func run(dir string,input string,limit time.Duration,name string,args ...string)
  err:=cmd.Run();if cmd.Process!=nil{syscall.Kill(-cmd.Process.Pid,syscall.SIGKILL)}
  if ctx.Err()!=nil{return "",ctx.Err()};if err!=nil{return "",fmt.Errorf("%w %s",err,diag.buf.String())};return out.buf.String(),nil
 }
-func compile(dir,src,bin string)error{_,err:=run(dir,"",30*time.Second,"g++","-std=c++20","-O2",src,"-o",bin);return err}
+func compile(dir,src,bin string)error{lib,err:=filepath.Abs("lib");if err!=nil{return err};_,err=run(dir,"",30*time.Second,"g++","-std=c++20","-O2","-I",lib,src,"-o",bin);return err}
 func same(a,b string)bool{return strings.Join(strings.Fields(a)," ")==strings.Join(strings.Fields(b)," ")}
 func build(e *Entry)(string,error){
  tests:=filepath.Join(e.Dir,"tests");suite,err:=os.MkdirTemp(tests,"suite-");if err!=nil{return "",err}
@@ -51,7 +51,7 @@ func build(e *Entry)(string,error){
  for _,d:=range []string{"in","out"}{if err=os.Mkdir(filepath.Join(suite,d),0755);err!=nil{return "",err}}
  if err=compile(suite,tests+"/sol.cpp","sol");err!=nil{return "",err}
  inputs:=[]string{};for _,s:=range e.Samples{inputs=append(inputs,s.Input)};inputs=append(inputs,e.Hidden...)
- if _,err=os.Stat(tests+"/gen.cpp");err==nil{if err=compile(suite,tests+"/gen.cpp","gen");err!=nil{return "",err};s,err:=run(suite,"",5*time.Second,"./gen");if err!=nil{return "",err};inputs=append(inputs,s)}
+ if _,err=os.Stat(tests+"/gen.cpp");err==nil{if err=compile(suite,tests+"/gen.cpp","gen");err!=nil{return "",err};runs:=e.GeneratorArgs;if len(runs)==0{runs=[][]string{nil}};for _,args:=range runs{input,err:=run(suite,"",5*time.Second,"./gen",args...);if err!=nil{return "",fmt.Errorf("generator %v: %w",args,err)};inputs=append(inputs,input)}}
  if len(inputs)==0{return "",errors.New("add at least one case")}
  for i,s:=range inputs{o,err:=run(suite,s,3*time.Second,"./sol");if err!=nil{return "",err};if i<len(e.Samples)&&!same(o,e.Samples[i].Output){return "",fmt.Errorf("sample %d: expected %q, reference produced %q",i+1,e.Samples[i].Output,o)}
  for dir,data:=range map[string]string{"in":s,"out":o}{if err=os.WriteFile(filepath.Join(suite,dir,fmt.Sprintf("%06d",i+1)),[]byte(data),0644);err!=nil{return "",err}}}
@@ -61,7 +61,9 @@ func load(dir string,force bool)error{
  b,err:=os.ReadFile(dir+"/meta.json");if err!=nil{return err};e:=&Entry{Dir:dir,Section:filepath.Base(filepath.Dir(dir)),Slug:filepath.Base(dir)};if err=json.Unmarshal(b,&e.Problem);err!=nil{return err}
  // Only reuse the suite named by the last successful build.
  marker:=dir+"/tests/current";old,_:=os.ReadFile(marker);e.Suite=filepath.Join(dir,"tests",string(old))
- if _,err=os.Stat(e.Suite+"/in");force||len(old)==0||err!=nil{suite,err:=build(e);if err!=nil{return err};if err=os.WriteFile(marker+".tmp",[]byte(filepath.Base(suite)),0644);err!=nil{return err};if err=os.Rename(marker+".tmp",marker);err!=nil{return err};if strings.HasPrefix(string(old),"suite-")&&filepath.Base(string(old))==string(old){os.RemoveAll(e.Suite)};e.Suite=suite}
+ cached,cacheErr:=os.ReadDir(e.Suite+"/in")
+ stale:=len(e.GeneratorArgs)>0 && len(cached)!=len(e.Samples)+len(e.Hidden)+len(e.GeneratorArgs)
+ if force||len(old)==0||cacheErr!=nil||stale{suite,err:=build(e);if err!=nil{return err};if err=os.WriteFile(marker+".tmp",[]byte(filepath.Base(suite)),0644);err!=nil{return err};if err=os.Rename(marker+".tmp",marker);err!=nil{return err};if strings.HasPrefix(string(old),"suite-")&&filepath.Base(string(old))==string(old){os.RemoveAll(e.Suite)};e.Suite=suite}
  catalog[e.Section+"/"+e.Slug]=e;return nil
 }
 func judge(e *Entry,code string)(string,error){
@@ -91,6 +93,7 @@ func create(r *http.Request)(string,error){
 }
 func serve(w http.ResponseWriter,r *http.Request){
  if r.Host!="127.0.0.1:8000"&&r.Host!="localhost:8000"{http.Error(w,"invalid host",403);return}
+ if r.Method=="GET" && (r.URL.Path=="/assets/app.js" || r.URL.Path=="/assets/style.css"){http.ServeFile(w,r,"web/"+filepath.Base(r.URL.Path));return}
  gate.Lock();defer gate.Unlock()
  p:=Page{Groups:map[string][]*Entry{},Builder:r.URL.Path=="/builder"};key:=r.URL.Query().Get("id");p.Task=catalog[key]
  if r.Method=="POST"{if r.Header.Get("Origin")!="http://"+r.Host{http.Error(w,"invalid origin",403);return};r.Body=http.MaxBytesReader(w,r.Body,1<<20);if err:=r.ParseForm();err!=nil{http.Error(w,"invalid form",400);return}
