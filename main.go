@@ -24,7 +24,7 @@ import (
 type Sample struct { Input string `json:"input"`; Output string `json:"output"` }
 type Problem struct { Difficulty string `json:"difficulty"`; GeneratorArgs [][]string `json:"generatorArgs,omitempty"`; Title string `json:"title"`; Statement string `json:"statement"`; Editorial string `json:"editorial"`; Samples []Sample `json:"samples"`; Hidden []string `json:"hidden,omitempty"` }
 type Entry struct { Problem; Dir,Section,Slug,Suite string; Solved bool }
-type Page struct { Groups map[string][]*Entry; Sections []string; Task *Entry; Verdict,Code string; Builder,Editorial bool; Form Problem; Section,Slug,Solution,Generator,Commands,Revision string }
+type Page struct { Trial *Trial; Input,Expected string; Compare bool; Groups map[string][]*Entry; Sections []string; Task *Entry; Verdict,Code string; Builder,Editorial bool; Form Problem; Section,Slug,Solution,Generator,Commands,Revision string }
 var catalog=map[string]*Entry{}
 var gate sync.Mutex
 var valid=regexp.MustCompile("^[A-Za-z0-9_-]+$")
@@ -36,6 +36,10 @@ func (w *capped) Write(p []byte)(int,error){
  w.remaining-=len(p);return w.buf.Write(p)
 }
 func run(dir string,input string,limit time.Duration,name string,args ...string)(string,error){
+ out,diag,err:=execute(dir,input,limit,name,args...)
+ if err!=nil{return "",fmt.Errorf("%w %s",err,diag)};return out,nil
+}
+func execute(dir string,input string,limit time.Duration,name string,args ...string)(string,string,error){
  ctx,cancel:=context.WithTimeout(context.Background(),limit);defer cancel()
  cmd:=exec.CommandContext(ctx,name,args...);cmd.Dir=dir;cmd.Stdin=strings.NewReader(input)
  cmd.SysProcAttr=&syscall.SysProcAttr{Setpgid:true}
@@ -43,7 +47,7 @@ func run(dir string,input string,limit time.Duration,name string,args ...string)
  cmd.WaitDelay=time.Second
  out,diag:=&capped{remaining:8<<20},&capped{remaining:64<<10};cmd.Stdout=out;cmd.Stderr=diag
  err:=cmd.Run();if cmd.Process!=nil{syscall.Kill(-cmd.Process.Pid,syscall.SIGKILL)}
- if ctx.Err()!=nil{return "",ctx.Err()};if err!=nil{return "",fmt.Errorf("%w %s",err,diag.buf.String())};return out.buf.String(),nil
+ if ctx.Err()!=nil{err=ctx.Err()};return out.buf.String(),diag.buf.String(),err
 }
 func compile(dir,src,bin string)error{lib,err:=filepath.Abs("lib");if err!=nil{return err};_,err=run(dir,"",30*time.Second,"g++","-std=c++20","-O2","-I",lib,src,"-o",bin);return err}
 func same(a,b string)bool{return strings.Join(strings.Fields(a)," ")==strings.Join(strings.Fields(b)," ")}
@@ -206,7 +210,12 @@ func serve(w http.ResponseWriter,r *http.Request){
  if r.Method=="POST"{if r.Header.Get("Origin")!="http://"+r.Host{http.Error(w,"invalid origin",403);return};r.Body=http.MaxBytesReader(w,r.Body,1<<20);if err:=r.ParseForm();err!=nil{http.Error(w,"invalid form",400);return}
  var err error
  switch {case p.Builder:key,err=saveProblem(r,&p,p.Task);if err==nil{http.Redirect(w,r,"/task?id="+key,303);return}
- case r.URL.Path=="/task"&&p.Task!=nil:p.Code=r.FormValue("code");p.Verdict,err=judge(p.Task,p.Code)
+ case r.URL.Path=="/task"&&p.Task!=nil:p.Code=r.FormValue("code")
+ p.Input=r.FormValue("stdin");p.Expected=r.FormValue("expected");p.Compare=r.FormValue("compare")=="on"
+ if r.FormValue("action")=="run" {
+  var trial Trial
+  trial,err=tryInput(p.Code,p.Input,p.Expected,p.Compare);p.Trial=&trial
+ } else {p.Verdict,err=judge(p.Task,p.Code)}
  default:http.NotFound(w,r);return};if err!=nil{p.Verdict=err.Error()}}
  if (r.URL.Path=="/task"||p.Editorial)&&p.Task==nil||r.URL.Path!="/"&&r.URL.Path!="/task"&&!p.Builder&&!p.Editorial{http.NotFound(w,r);return}
  sections,_:=os.ReadDir("problems");for _,s:=range sections{if s.IsDir(){p.Sections=append(p.Sections,strings.ReplaceAll(s.Name(),"_"," "))}}

@@ -8,11 +8,74 @@ if(source){
  document.querySelector('#file').onchange=async e=>{const f=e.target.files[0];if(f&&(!source.value||confirm('Replace the current source?'))){source.value=await f.text();source.dispatchEvent(new Event("input"));}};
 }
 const builder=document.querySelector('#builder');
-for(const form of document.forms)form.onsubmit=()=>{const button=form.querySelector('button[type=submit]');button.disabled=true;button.textContent='Working…';};
+for (const form of document.forms) form.addEventListener('submit', async e => {
+ const button = e.submitter;
+ if (form.getAttribute('aria-busy') === 'true') { e.preventDefault(); return; }
+ form.setAttribute('aria-busy','true');
+ if (!button) return;
+ const label = button.textContent;
+ button.dataset.label = label;
+ button.textContent = 'Working…';
+ if (button.value !== 'run' || !window.fetch) return;
+ e.preventDefault();
+ const result = document.querySelector('#trial-output');
+ const fields = new URLSearchParams(new FormData(form));
+ fields.set('action','run');
+ result.textContent = 'Compiling and running…';
+ try {
+  const response = await fetch(form.action,{method:'POST',body:fields});
+  if (!response.ok) throw new Error('HTTP ' + response.status);
+  const page = new DOMParser().parseFromString(await response.text(),'text/html');
+  const report = page.querySelector('#trial-output');
+  if (!report || !report.children.length) throw new Error('Missing run result');
+  result.replaceChildren(...report.childNodes);
+ } catch (error) {
+  result.textContent = 'Could not run this case. ' + error.message;
+ } finally {
+  form.removeAttribute('aria-busy');
+  button.textContent = label;
+ }
+});
+window.addEventListener('pageshow', e => { if (e.persisted) { for (const form of document.forms) form.removeAttribute('aria-busy'); for (const button of document.querySelectorAll('button[data-label]')) button.textContent=button.dataset.label; } });
+if (source) source.addEventListener('keydown', e => {
+ if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+  e.preventDefault();
+  source.form.requestSubmit(source.form.querySelector('[value=run]'));
+ }
+});
+const picker = document.querySelector('#load-sample');
+if (picker) {
+ const cases = document.querySelectorAll('.samples');
+ Array.from(picker.options).slice(1).forEach((opt,i) => opt.textContent = 'Sample ' + (i+1));
+ picker.addEventListener('change', () => {
+  if (picker.value === '') return;
+  const [input,output] = cases[Number(picker.value)].querySelectorAll('pre');
+  const fields = picker.form.elements;
+  fields.stdin.value=input.textContent;
+  fields.expected.value=output.textContent;
+  fields.compare.checked=true;
+  picker.value='';
+ });
+}
 
 for (const box of document.querySelectorAll('#code, textarea[name=solution], textarea[name=generator]')) {
  let escapeTab=false;
  box.addEventListener('keydown',event=>{
+  if (event.isComposing) return;
+  if (event.key === 'Enter' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+   event.preventDefault();
+   const {value,selectionStart:start,selectionEnd:end}=box;
+   const before=value.slice(value.lastIndexOf('\n',start-1)+1,start);
+   const base=before.match(/^[ \t]*/)[0];
+   const opens=before.trimEnd().endsWith('{');
+   const indent=base+(opens?'    ':'');
+   const close=opens && /^[ \t]*}/.exec(value.slice(end));
+   const insert='\n'+indent+(close?'\n'+base:'');
+   box.setRangeText(insert,start,end+(close?close[0].length-1:0),'end');
+   box.setSelectionRange(start+1+indent.length,start+1+indent.length);
+   box.dispatchEvent(new Event('input',{bubbles:true}));
+   return;
+  }
   if(event.key==='Escape'){escapeTab=true;return;}
   if(event.key!=='Tab'||escapeTab){escapeTab=false;return;}
   event.preventDefault();
@@ -137,6 +200,12 @@ if(editorial){
  }
  for(const line of lines){
   if(line.trim()==='~~~'){flush();code=!code;}
+  else if(!code && line.startsWith('## ')){
+   flush();
+   const heading=document.createElement('h3');
+   heading.textContent=line.slice(3);
+   editorial.append(heading);
+  }
   else if(!code&&!line.trim())flush();
   else block.push(line);
  }
