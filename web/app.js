@@ -23,7 +23,7 @@ for (const form of document.forms) form.addEventListener('submit', async e => {
  fields.set('action','run');
  result.textContent = 'Compiling and running…';
  try {
-  const response = await fetch(form.action,{method:'POST',body:fields});
+  const response = await fetch(form.getAttribute('action') || location.href,{method:'POST',body:fields});
   if (!response.ok) throw new Error('HTTP ' + response.status);
   const page = new DOMParser().parseFromString(await response.text(),'text/html');
   const report = page.querySelector('#trial-output');

@@ -53,7 +53,9 @@ try:
     script("const s=document.querySelector('#load-sample');s.value='0';s.dispatchEvent(new Event('change'));")
     assert script("return document.querySelector('[name=compare]').checked && document.querySelector('[name=stdin]').value.startsWith('7 5')")
     script("document.querySelector('#code').value='int main(){}';document.querySelector('[value=run]').click();")
-    wait_for(lambda: script("return document.querySelector('#trial-output').textContent.includes('Output differs')"))
+    wait_for(lambda: script("return !document.querySelector('#code').form.hasAttribute('aria-busy')"))
+    result = script("return document.querySelector('#trial-output').textContent")
+    assert 'Output differs' in result, result
     assert script("return document.querySelector('#code').value") == "int main(){}"
     call("POST", session + "/url", {"url":server+"/editorial"+key})
     assert script("return document.querySelectorAll('#editorial h3').length") == 4
