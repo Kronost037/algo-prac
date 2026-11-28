@@ -1,0 +1,30 @@
+{
+  "title": "Euclid Toolkit",
+  "difficulty": "medium",
+  "statement": "Use Euclid’s algorithm for GCD and LCM and extended Euclid to compute modular inverses.\n\nInput\nq, then q lines OP a b. GCD and LCM use two nonnegative integers. Define gcd(0,0)=0 and lcm(a,0)=lcm(0,b)=0. For INV, a may be signed and b≥2 is the modulus.\n\nOutput\nPrint each result. For INV print the smallest nonnegative inverse, or NONE if no inverse exists.\n\nConstraints\n1 ≤ q ≤ 200000. Inputs have absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "6\nGCD 0 0\nGCD 54 24\nLCM 6 8\nLCM 7 0\nINV -3 11\nINV 4 10\n",
+      "output": "0\n6\n24\n0\n7\nNONE\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "99",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Euclid replaces (a,b) by (b,a mod b) without changing the GCD. Divide before multiplying for the LCM. Extended Euclid returns coefficients x,y with ax+by=gcd(a,b); if the GCD is one, normalize x modulo b to get the unique inverse. Reduce signed inputs before recursing. O(log(max(a,b)+1)) arithmetic steps per query, with O(log(max(a,b)+1)) recursion depth.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\npair<long long,long long> coefficients(long long a,long long b){\n    if(b==0)return {1,0};\n    auto [x,y]=coefficients(b,a%b);\n    return {y,x-a/b*y};\n}\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int q;cin>>q;\n    while(q--){\n        string op;long long a,b;cin>>op>>a>>b;\n        long long g=gcd(a,b);\n        if(op==\"GCD\")cout<<g<<'\\n';\n        else if(op==\"LCM\")cout<<(g?a/g*b:0)<<'\\n';\n        else if(g!=1)cout<<\"NONE\\n\";\n        else{\n            auto [x,y]=coefficients((a%b+b)%b,b);\n            cout<<(x%b+b)%b<<'\\n';\n        }\n    }\n}\n~~~"
+}

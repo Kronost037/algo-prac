@@ -1,0 +1,30 @@
+{
+  "title": "Sieve and Factorization",
+  "difficulty": "medium",
+  "statement": "Build the smallest-prime-factor table once, then answer factorization and divisor-count queries.\n\nInput\nq, then q lines FACT x or DIV x.\n\nOutput\nFor FACT print the number of distinct prime factors followed by increasing prime/exponent pairs. For DIV print the number of positive divisors. For x=1, FACT prints 0 and DIV prints 1.\n\nConstraints\n1 ≤ q ≤ 200000. 1 ≤ x ≤ 1000000.",
+  "samples": [
+    {
+      "input": "5\nFACT 12\nDIV 12\nDIV 1\nFACT 13\nFACT 1\n",
+      "output": "2 2 2 3 1\n6\n1\n1 13 1\n0\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "101",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Sieve multiples in increasing prime order and keep the first prime that marks each composite. Extract the smallest prime repeatedly and count its exponent before advancing. The divisor count is the product of (exponent+1). Build to the largest query in O(N log log(N+2)) time and O(N) space. Each query uses at most O(log x+1) divisions.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int q;cin>>q;vector<pair<string,int>>queries(q);\n    int limit=1;\n    for(auto& [op,x]:queries){cin>>op>>x;limit=max(limit,x);}\n    vector<int>spf(limit+1);\n    for(int p=2;p<=limit;++p)if(!spf[p]){\n        spf[p]=p;\n        if(p<=limit/p)for(int m=p*p;m<=limit;m+=p)if(!spf[m])spf[m]=p;\n    }\n    for(auto [op,x]:queries){\n        vector<pair<int,int>>factors;\n        int divisors=1;\n        while(x>1){\n            int p=spf[x],count=0;\n            do{x/=p;++count;}while(x>1 && spf[x]==p);\n            factors.emplace_back(p,count);divisors*=count+1;\n        }\n        if(op==\"DIV\")cout<<divisors;\n        else{\n            cout<<factors.size();\n            for(auto [p,k]:factors)cout<<' '<<p<<' '<<k;\n        }\n        cout<<'\\n';\n    }\n}\n~~~"
+}

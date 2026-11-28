@@ -1,0 +1,38 @@
+{
+  "title": "Undirected Cycle Detection",
+  "difficulty": "medium",
+  "statement": "Use DFS with edge IDs to detect whether an undirected multigraph contains a cycle. A self-loop or a pair of parallel edges counts as a cycle.\n\nInput\nn m followed by m undirected edges.\n\nOutput\nPrint YES if a cycle exists and NO otherwise.\n\nConstraints\n1 ≤ n ≤ 200000, 0 ≤ m ≤ 200000. Endpoints are in [1,n]. Parallel edges and self-loops are allowed.",
+  "samples": [
+    {
+      "input": "3 2\n1 2\n1 2\n",
+      "output": "YES\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "1",
+      "3"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "49",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Each DFS frame remembers the single edge used to enter it. Skip that edge at its other endpoint. Any other edge to a discovered vertex closes a cycle, because the DFS tree already connects them. Skipping all edges to the parent vertex would miss parallel edges. O(n+m) time and space.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Frame{int v,parentEdge,next;};\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int n,m;cin>>n>>m;\n    vector<vector<pair<int,int>>>g(n+1);\n    for(int i=0;i<m;++i){int u,v;cin>>u>>v;g[u].emplace_back(v,i);g[v].emplace_back(u,i);}\n    vector<char>seen(n+1);\n    for(int root=1;root<=n;++root)if(!seen[root]){\n        vector<Frame>st{{root,-1,0}};seen[root]=1;\n        while(!st.empty()){\n            auto& f=st.back();\n            if(f.next==int(g[f.v].size())){st.pop_back();continue;}\n            auto [u,id]=g[f.v][f.next++];\n            if(id==f.parentEdge)continue;\n            if(seen[u]){cout<<\"YES\\n\";return 0;}\n            seen[u]=1;st.push_back({u,id,0});\n        }\n    }\n    cout<<\"NO\\n\";\n}\n~~~"
+}

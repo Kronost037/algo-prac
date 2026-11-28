@@ -1,0 +1,30 @@
+{
+  "title": "Binary Lifting Toolkit",
+  "difficulty": "hard",
+  "statement": "Build an ancestor jump table for a tree rooted at node 1.\n\nInput\nn q, followed by n−1 undirected edges, then q operations: ANC u k asks for the kth ancestor, LCA u v for the lowest common ancestor, DIST u v for their edge distance, and PATH u v k for the node k edges from u along the path toward v.\n\nOutput\nPrint one answer per query. Return 0 for a jump past the root or a PATH step past v.\n\nConstraints\n1 ≤ n,q ≤ 200000. Node IDs are 1 through n and 0 ≤ k ≤ n.",
+  "samples": [
+    {
+      "input": "5 6\n1 2\n1 3\n2 4\n2 5\nANC 4 2\nANC 4 3\nLCA 4 5\nDIST 4 3\nPATH 4 3 2\nPATH 4 3 4\n",
+      "output": "1\n0\n2\n3\n1\n0\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "The kth ancestor is a sequence of power-of-two jumps for the set bits of k. For LCA align the depths, then lift both nodes together by the largest jumps that leave their ancestors distinct. Their parents now agree. The path goes up to the LCA and down to v. The first part jumps from u; for the second, jump from v by the remaining distance. Preprocess in O(n log n), answer in O(log n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int n,q;cin>>n>>q;\n    vector<vector<int>>g(n+1);\n    for(int i=1;i<n;++i){int u,v;cin>>u>>v;g[u].push_back(v);g[v].push_back(u);}\n    int levels=bit_width(unsigned(n));\n    vector<vector<int>> up(levels,vector<int>(n+1));\n    vector<int> depth(n+1),order{1};\n    for(size_t i=0;i<order.size();++i){\n        int v=order[i];\n        for(int u:g[v])if(u!=up[0][v]){\n            up[0][u]=v;depth[u]=depth[v]+1;order.push_back(u);\n        }\n    }\n    for(int j=1;j<levels;++j)for(int v=1;v<=n;++v)up[j][v]=up[j-1][up[j-1][v]];\n    auto lift=[&](int v,int k){\n        for(int j=0;j<levels;++j)if(k>>j&1)v=up[j][v];\n        return v;\n    };\n    auto lca=[&](int u,int v){\n        if(depth[u]<depth[v])swap(u,v);\n        u=lift(u,depth[u]-depth[v]);\n        if(u==v)return u;\n        for(int j=levels-1;j>=0;--j)if(up[j][u]!=up[j][v]){u=up[j][u];v=up[j][v];}\n        return up[0][u];\n    };\n    while(q--){\n        string op;int u,v;cin>>op>>u>>v;\n        if(op==\"ANC\"){cout<<lift(u,v)<<'\\n';continue;}\n        int w=lca(u,v),left=depth[u]-depth[w],distance=left+depth[v]-depth[w];\n        if(op==\"LCA\")cout<<w<<'\\n';\n        else if(op==\"DIST\")cout<<distance<<'\\n';\n        else{int k;cin>>k;cout<<(k>distance?0:k<=left?lift(u,k):lift(v,distance-k))<<'\\n';}\n    }\n}\n~~~"
+}

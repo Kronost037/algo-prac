@@ -1,0 +1,30 @@
+{
+  "title": "BST Rank and Selection",
+  "difficulty": "hard",
+  "statement": "Implement a treap with subtree sizes to maintain a set of distinct integer keys.\n\nInput\nq, then q operations ADD x, ERASE x, RANK x, or KTH k. ADD and ERASE have set semantics. RANK counts keys strictly below x. KTH uses a 1-based rank.\n\nOutput\nPrint the answer for each query. Print NONE for an out-of-range KTH.\n\nConstraints\n1 ≤ q ≤ 200000. Keys have absolute value at most 10⁹ and 1 ≤ k ≤ q.",
+  "samples": [
+    {
+      "input": "8\nADD 5\nADD -1\nADD 7\nADD 5\nRANK 5\nKTH 2\nERASE 5\nKTH 3\n",
+      "output": "1\n5\nNONE\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Keep BST order on keys and heap order on independently randomized priorities. Split by key and merge by priority to insert or delete. Recompute subtree sizes after changing a child. Rank skips a left subtree and its root when moving right; selection compares k with the left subtree size plus one. Operations take expected O(log q), with O(q) storage.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Node {int key,left=0,right=0,size=1;uint64_t priority;};\nclass Treap{\n    vector<Node>a{{0,0,0,0,0}};\n    mt19937_64 random{random_device{}()};\n    int root=0;\n    void pull(int v){a[v].size=1+a[a[v].left].size+a[a[v].right].size;}\n    pair<int,int> split(int v,int x){\n        if(!v)return {0,0};\n        if(a[v].key<x){\n            auto [l,r]=split(a[v].right,x);a[v].right=l;pull(v);return {v,r};\n        }\n        auto [l,r]=split(a[v].left,x);a[v].left=r;pull(v);return {l,v};\n    }\n    int merge(int l,int r){\n        if(!l||!r)return l?l:r;\n        if(a[l].priority>a[r].priority){a[l].right=merge(a[l].right,r);pull(l);return l;}\n        a[r].left=merge(l,a[r].left);pull(r);return r;\n    }\npublic:\n    void set(int x,bool present){\n        auto [l,tail]=split(root,x);\n        auto [same,r]=split(tail,x+1);\n        if(present&&!same){same=a.size();a.push_back({x,0,0,1,random()});}\n        root=merge(merge(l,present?same:0),r);\n    }\n    int rank(int x)const{\n        int count=0;\n        for(int v=root;v;){\n            if(x<=a[v].key)v=a[v].left;\n            else{count+=a[a[v].left].size+1;v=a[v].right;}\n        }\n        return count;\n    }\n    optional<int> kth(int k)const{\n        for(int v=root;v;){\n            int here=a[a[v].left].size+1;\n            if(k==here)return a[v].key;\n            if(k<here)v=a[v].left;\n            else{k-=here;v=a[v].right;}\n        }\n        return nullopt;\n    }\n};\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int q;cin>>q;Treap t;\n    while(q--){\n        string op;int x;cin>>op>>x;\n        if(op==\"RANK\")cout<<t.rank(x)<<'\\n';\n        else if(op==\"KTH\"){auto v=t.kth(x);if(v)cout<<*v<<'\\n';else cout<<\"NONE\\n\";}\n        else t.set(x,op==\"ADD\");\n    }\n}\n~~~"
+}

@@ -1,0 +1,30 @@
+{
+  "title": "Dijkstra Distance Queries",
+  "difficulty": "medium",
+  "statement": "Use Dijkstra to precompute shortest distances from source s.\n\nInput\nn m q s, then m directed edges u v w, then q target vertex IDs.\n\nOutput\nPrint the minimum cost to each target, or −1 if unreachable.\n\nConstraints\n1 ≤ n ≤ 200000, 0 ≤ m ≤ 200000. Endpoints are in [1,n]. Parallel edges and self-loops are allowed. 1 ≤ q ≤ 200000. 0 ≤ w ≤ 10⁹.",
+  "samples": [
+    {
+      "input": "5 5 4 1\n1 2 8\n1 3 3\n3 2 1\n2 4 4\n3 4 20\n2 4 5 1\n",
+      "output": "4\n8\n-1\n0\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Relax outgoing edges from the smallest distance in a min-heap. Ignore stale entries from vertices improved after an earlier push. Nonnegative weights guarantee a current minimum distance cannot be improved later. Use 64-bit distances for long paths. O((n+m) log(n+m)+q) time and O(n+m) space.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int n,m,q,s;cin>>n>>m>>q>>s;\n    vector<vector<pair<int,int>>>g(n+1);\n    while(m--){int u,v,w;cin>>u>>v>>w;g[u].emplace_back(v,w);}\n    const long long inf=LLONG_MAX/4;\n    using State=pair<long long,int>;\n    priority_queue<State,vector<State>,greater<State>>open;\n    vector<long long>d(n+1,inf);\n    d[s]=0;\n    open.emplace(0,s);\n    while(!open.empty()){\n        auto [cost,v]=open.top();open.pop();\n        if(cost!=d[v])continue;\n        for(auto [u,w]:g[v])if(cost+w<d[u]){\n            d[u]=cost+w;\n            open.emplace(d[u],u);\n        }\n    }\n    while(q--){\n        int v;cin>>v;\n        cout<<(d[v]==inf?-1:d[v])<<'\\n';\n    }\n}\n~~~"
+}

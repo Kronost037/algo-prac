@@ -1,0 +1,30 @@
+{
+  "title": "Bipartite Coloring",
+  "difficulty": "easy",
+  "statement": "Color an undirected graph using colors 1 and 2 so every edge has unequal endpoint colors. In every component, assign its smallest vertex color 1.\n\nInput\nn m followed by m undirected edges.\n\nOutput\nPrint IMPOSSIBLE if no coloring exists. Otherwise print the colors of nodes 1 through n.\n\nConstraints\n1 ≤ n ≤ 200000, 0 ≤ m ≤ 200000. Endpoints are in [1,n]. Parallel edges and self-loops are allowed.",
+  "samples": [
+    {
+      "input": "5 3\n2 4\n2 3\n1 5\n",
+      "output": "1 1 2 2 2\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "39",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "199999",
+      "3"
+    ]
+  ],
+  "editorial": "Visit component roots in increasing vertex order, so each new root is its component minimum. Start it with color 1, and assign the opposite color across every edge. An edge between two already equal colors proves inconsistency in that component. Otherwise the colors satisfy all edges. O(n+m) time and storage.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nvector<vector<int>> graph(int n,int m){\n    vector<vector<int>>g(n+1);\n    while(m--){int u,v;cin>>u>>v;g[u].push_back(v);g[v].push_back(u);}\n    return g;\n}\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int n,m;cin>>n>>m;auto g=graph(n,m);\n    vector<int>color(n+1);\n    for(int root=1;root<=n;++root)if(!color[root]){\n        vector<int>q{root};color[root]=1;\n        for(size_t i=0;i<q.size();++i)for(int u:g[q[i]]){\n            if(color[u]==color[q[i]]){cout<<\"IMPOSSIBLE\\n\";return 0;}\n            if(!color[u]){color[u]=3-color[q[i]];q.push_back(u);}\n        }\n    }\n    for(int v=1;v<=n;++v)cout<<color[v]<<(v==n?'\\n':' ');\n}\n~~~"
+}

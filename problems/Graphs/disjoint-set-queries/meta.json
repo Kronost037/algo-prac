@@ -1,0 +1,30 @@
+{
+  "title": "Disjoint-Set Queries",
+  "difficulty": "easy",
+  "statement": "Implement union by size and path compression to maintain a partition of n singleton vertices.\n\nInput\nn q, then q operations UNION u v, SAME u v, or SIZE u.\n\nOutput\nPrint YES or NO for SAME and the component size for SIZE.\n\nConstraints\n1 ≤ n,q ≤ 200000. Vertex IDs are 1 through n.",
+  "samples": [
+    {
+      "input": "4 6\nSIZE 1\nUNION 1 2\nUNION 1 2\nSAME 2 3\nUNION 2 3\nSIZE 1\n",
+      "output": "1\nNO\n3\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Represent sets by rooted parent trees. Find compresses the visited path, and union attaches the smaller root beneath the larger. Repeated unions between already connected nodes leave sizes unchanged. The operations cost amortized O(α(n)), with O(n) space.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nclass DSU{\n    vector<int>parent,size;\npublic:\n    explicit DSU(int n):parent(n+1),size(n+1,1){iota(parent.begin(),parent.end(),0);}\n    int find(int v){\n        while(parent[v]!=v){parent[v]=parent[parent[v]];v=parent[v];}\n        return v;\n    }\n    int count(int v){return size[find(v)];}\n    bool unite(int u,int v){\n        u=find(u);v=find(v);\n        if(u==v)return false;\n        if(size[u]<size[v])swap(u,v);\n        size[u]+=size[v];parent[v]=u;return true;\n    }\n};\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int n,q;cin>>n>>q;DSU d(n);\n    while(q--){\n        string op;int u;cin>>op>>u;\n        if(op==\"SIZE\")cout<<d.count(u)<<'\\n';\n        else{int v;cin>>v;if(op==\"UNION\")d.unite(u,v);else cout<<(d.find(u)==d.find(v)?\"YES\":\"NO\")<<'\\n';}\n    }\n}\n~~~"
+}

@@ -1,0 +1,34 @@
+{
+  "title": "Multi-Source Grid BFS",
+  "difficulty": "medium",
+  "statement": "For each queried passable cell find its shortest orthogonal distance to any source.\n\nInput\nn m q, then n rows with # for walls, . for empty cells, and S for sources. Then read q passable 1-based row/column pairs.\n\nOutput\nPrint each distance, or −1 if no source is reachable.\n\nConstraints\n1 ≤ n,m ≤ 1000, 1 ≤ q ≤ 200000.",
+  "samples": [
+    {
+      "input": "3 4 4\nS.#.\n..#.\nS.#.\n1 1\n2 2\n3 2\n3 4\n",
+      "output": "0\n2\n1\n-1\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0",
+      "1"
+    ],
+    [
+      "20",
+      "1",
+      "17"
+    ],
+    [
+      "1000",
+      "2",
+      "1000"
+    ],
+    [
+      "1000",
+      "3",
+      "1000"
+    ]
+  ],
+  "editorial": "Queue every source with distance zero before starting BFS. Every passable neighbor is discovered first from a shortest route to some source, because the queue processes increasing distances. Walls and unreached cells never enter the queue. O(nm+q) time, O(nm) space.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int n,m,q;cin>>n>>m>>q;\n    vector<string>a(n);for(auto& s:a)cin>>s;\n    vector<int>d(n*m,-1),queue;\n    for(int r=0;r<n;++r)for(int c=0;c<m;++c)if(a[r][c]=='S'){int v=r*m+c;d[v]=0;queue.push_back(v);}\n    const int dr[]={1,-1,0,0},dc[]={0,0,1,-1};\n    for(size_t i=0;i<queue.size();++i){\n        int v=queue[i],r=v/m,c=v%m;\n        for(int k=0;k<4;++k){\n            int x=r+dr[k],y=c+dc[k];\n            if(x<0||x>=n||y<0||y>=m||a[x][y]=='#'||d[x*m+y]>=0)continue;\n            d[x*m+y]=d[v]+1;queue.push_back(x*m+y);\n        }\n    }\n    while(q--){int r,c;cin>>r>>c;cout<<d[(r-1)*m+c-1]<<'\\n';}\n}\n~~~"
+}

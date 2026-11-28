@@ -1,0 +1,30 @@
+{
+  "title": "BST Validation",
+  "difficulty": "easy",
+  "statement": "Propagate ancestor bounds to determine whether every key in a left subtree is strictly smaller and every key in a right subtree strictly larger.\n\nInput\nn, then n lines value left right for nodes 1 through n; child ID 0 denotes an absent child.\n\nOutput\nPrint YES or NO.\n\nConstraints\n1 ≤ n ≤ 200000. Values have absolute value at most 10⁹. The child links form one rooted tree with root 1.",
+  "samples": [
+    {
+      "input": "4\n4 2 3\n2 0 4\n7 0 0\n1 0 0\n",
+      "output": "NO\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "A child inherits all bounds from its ancestors. A left edge replaces the upper bound with the parent value, while a right edge replaces the lower bound. Require strict inequalities to reject duplicates. Carry bounds in an explicit stack to handle a chain. O(n) time and O(n) worst-case space.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Node { int value,l,r; };\nvector<Node> readTree() {\n    int n;cin>>n;\n    vector<Node>a(n+1);\n    for(int i=1;i<=n;++i)cin>>a[i].value>>a[i].l>>a[i].r;\n    return a;\n}\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    auto a=readTree();\n    vector<tuple<int,long long,long long>> st{{1,LLONG_MIN,LLONG_MAX}};\n    while(!st.empty()){\n        auto [v,low,high]=st.back();st.pop_back();\n        if(a[v].value<=low||a[v].value>=high){cout<<\"NO\\n\";return 0;}\n        if(a[v].l)st.emplace_back(a[v].l,low,a[v].value);\n        if(a[v].r)st.emplace_back(a[v].r,a[v].value,high);\n    }\n    cout<<\"YES\\n\";\n}\n~~~"
+}
