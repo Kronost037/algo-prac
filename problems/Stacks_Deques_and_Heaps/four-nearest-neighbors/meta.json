@@ -1,0 +1,54 @@
+{
+  "title": "Four Nearest Neighbors",
+  "difficulty": "easy",
+  "statement": "Implement monotonic-stack preprocessing to answer four types of nearest-neighbor query. Return the nearest index with a strictly greater or smaller value in the requested direction. Equal values never qualify.\n\nInput\nThe first line contains n and q, followed by the n array values. Each query is type i. Types 1, 2, 3 and 4 mean next greater, next smaller, previous greater and previous smaller, respectively. Next means strictly to the right, previous strictly to the left.\n\nOutput\nFor each query print the 1-based index, or 0 if absent.\n\nConstraints\n1 ≤ n,q ≤ 200000, 1 ≤ i ≤ n, and each value has absolute value at most 10⁹. Aim for O(n) preprocessing and O(1) per query.",
+  "samples": [
+    {
+      "input": "6 4\n5 2 4 4 1 6\n1 3\n2 3\n3 3\n4 3\n",
+      "output": "6\n5\n1\n2\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "equal",
+      "1",
+      "0"
+    ],
+    [
+      "equal",
+      "200000",
+      "1"
+    ],
+    [
+      "increasing",
+      "200000",
+      "2"
+    ],
+    [
+      "decreasing",
+      "200000",
+      "3"
+    ],
+    [
+      "plateau",
+      "200000",
+      "4"
+    ],
+    [
+      "alternating",
+      "200000",
+      "5"
+    ],
+    [
+      "random",
+      "37",
+      "6"
+    ],
+    [
+      "random",
+      "200000",
+      "7"
+    ]
+  ],
+  "editorial": "For next greater, scan from right to left. Pop every top whose value is at most the current value. Any later query to the left for which a popped index could qualify can use the current index instead, which is closer and at least as large. After the pops, the top is the closest strictly greater candidate. Reverse the scan for previous, and reverse the comparison for smaller. Every index enters and leaves each stack at most once. The four passes take O(n), and each query takes O(1).\n~~~\n#include <array>\n#include <iostream>\n#include <vector>\n\nint main() {\n    std::ios::sync_with_stdio(false);\n    std::cin.tie(nullptr);\n    int n, q;\n    std::cin >> n >> q;\n    std::vector<int> a(n + 1);\n    for (int i = 1; i <= n; ++i) std::cin >> a[i];\n    std::array<std::vector<int>, 4> answer;\n    for (int type = 0; type < 4; ++type) {\n        answer[type].resize(n + 1);\n        const bool right = type < 2, greater = type % 2 == 0;\n        std::vector<int> stack;\n        for (int i = right ? n : 1; i >= 1 && i <= n; i += right ? -1 : 1) {\n            while (!stack.empty() &&\n                   (greater ? a[stack.back()] <= a[i] : a[stack.back()] >= a[i]))\n                stack.pop_back();\n            if (!stack.empty()) answer[type][i] = stack.back();\n            stack.push_back(i);\n        }\n    }\n    while (q--) {\n        int type, i;\n        std::cin >> type >> i;\n        std::cout << answer[type - 1][i] << '\\n';\n    }\n}\n~~~"
+}
