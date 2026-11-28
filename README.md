@@ -18,3 +18,9 @@ Commands accept INT_MIN, INT_MAX, LONG_MIN, and LONG_MAX as standalone arguments
 With the server stopped, use `go run . build Binary_Search/last-occurrence` to force a build of one problem, or `go run . build` for the whole catalog. Each sample is compared with the reference answer. Generated inputs are processed individually. A failed build leaves the previous suite on disk.
 
 For a new drill, set its section, difficulty, intended algorithm, input bounds, output order, and tie rules. Supply hand-checked samples and deterministic generator commands for boundary, random, and maximum-size inputs. Compare the reference against a simpler independent solver on small cases before publishing. A successful suite build alone cannot establish that the reference algorithm is correct.
+
+## Practice workspace
+
+Open a task’s **Workspace** to paste C++20 or import a file. Load a public sample or type your own standard input. **Run case** (Ctrl+Enter in the editor) shows stdout, diagnostics and execution time. Enable token comparison to check your expected answer, including empty output. **Submit to judge** runs the official suite and can mark the problem solved for this server session.
+
+Enter carries forward indentation. After an opening brace it adds four spaces, and between braces it places the closing brace on its own line. These keys also work in the builder’s reference and generator editors. In editorials, use a line beginning with `## ` for a section heading and standalone `~~~` lines around C++.

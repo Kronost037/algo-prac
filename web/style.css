@@ -279,3 +279,16 @@ button[data-remove],button[data-add] {background:var(--panel);color:var(--mint);
 
 select[name=difficulty] {display:block;margin-top:.35rem;padding:.6rem .8rem;background:var(--panel);color:var(--ink);border:1px solid var(--rule);border-radius:4px;font:inherit}
 .row .difficulty {text-transform:capitalize}
+
+.trial,.trial-result {margin:1.25rem 0;padding:1.1rem clamp(.8rem,3vw,1.6rem);border:1px solid var(--rule);border-radius:6px;background:var(--panel)}
+.trial-head,.trial-actions,.compare {display:flex;align-items:center;gap:.9rem;flex-wrap:wrap}
+.trial-head {justify-content:space-between}
+.trial h3,.trial-result h3 {margin:.25rem 0}
+.trial select {font:inherit;background:#101412;color:var(--ink);padding:.4rem;border:1px solid var(--rule);border-radius:4px}
+.compare input {width:auto;margin:0;accent-color:var(--mint)}
+.official {color:var(--ink);background:transparent;border:1px solid var(--rule)}
+.official:hover {background:#303a32}
+.trial-result pre {max-height:23rem;overflow:auto;white-space:pre;padding:.8rem;background:#101412}
+#editorial {max-width:80ch}
+#editorial h3 {font-size:1.14rem;color:var(--mint);margin:2rem 0 .5rem;border-top:1px solid var(--rule);padding-top:1rem}
+#editorial p {line-height:1.7;margin:.55rem 0 1rem}
