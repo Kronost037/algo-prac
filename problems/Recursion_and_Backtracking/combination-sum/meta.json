@@ -1,0 +1,30 @@
+{
+  "title": "Combination Sum",
+  "difficulty": "medium",
+  "statement": "Generate all nondecreasing combinations that sum to T. A listed candidate may be used any number of times, and duplicate candidate values are allowed in the input.\n\nInput\nn T, then n positive integers.\n\nOutput\nPrint the number of combinations. Then print each in lexicographic order as its length followed by its elements.\n\nConstraints\n1 ≤ n ≤ 16, 0 ≤ T ≤ 35. Candidates lie in [1,50]. The unique combination for T=0 is empty.",
+  "samples": [
+    {
+      "input": "4 7\n2 3 6 2\n",
+      "output": "1\n3 2 2 3\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "11",
+      "1"
+    ],
+    [
+      "16",
+      "2"
+    ],
+    [
+      "16",
+      "3"
+    ]
+  ],
+  "editorial": "Sort and deduplicate candidates. Choose the next value starting from the last chosen index so sequences stay nondecreasing. Recurse from the same index to permit reuse. Stop trying candidates once they exceed the remaining sum. The search visits only prefixes with sum at most T, with depth at most T. Collect solutions to print the count first.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nvoid search(const vector<int>& a,int start,int left,vector<int>& path,vector<vector<int>>& output) {\n    if (left==0) { output.push_back(path); return; }\n    for (int i=start;i<int(a.size()) && a[i]<=left;++i) {\n        path.push_back(a[i]);\n        search(a,i,left-a[i],path,output);\n        path.pop_back();\n    }\n}\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,target; cin>>n>>target;\n    vector<int>a(n),path;\n    for (int& x:a) cin>>x;\n    sort(a.begin(),a.end());\n    a.erase(unique(a.begin(),a.end()),a.end());\n    vector<vector<int>>output;\n    search(a,0,target,path,output);\n    cout<<output.size()<<'\\n';\n    for (const auto& row:output) {\n        cout<<row.size();\n        for (int x:row) cout<<' '<<x;\n        cout<<'\\n';\n    }\n}\n~~~"
+}

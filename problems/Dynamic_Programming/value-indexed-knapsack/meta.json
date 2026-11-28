@@ -1,0 +1,30 @@
+{
+  "title": "Value-Indexed Knapsack",
+  "difficulty": "medium",
+  "statement": "Use value-indexed 0/1 knapsack DP to maximize total value at weight at most W. Each item can be taken once.\n\nInput\nn W, then n lines weight value.\n\nOutput\nPrint the maximum total value.\n\nConstraints\n1 ≤ n ≤ 100, 0 ≤ W ≤ 10¹⁴. Weights are positive and at most 10¹². Values lie in [1,1000].",
+  "samples": [
+    {
+      "input": "3 6\n3 5\n4 7\n2 4\n",
+      "output": "11\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "12",
+      "1"
+    ],
+    [
+      "100",
+      "2"
+    ],
+    [
+      "100",
+      "3"
+    ]
+  ],
+  "editorial": "Let dp[v] be the least weight that achieves exact value v. Start only value zero as feasible and scan values downward per item so that item cannot enter twice. Find the largest value whose minimum weight is at most W. Time O(n·sumValues), space O(sumValues).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    int n; long long capacity; cin>>n>>capacity;\n    vector<pair<long long,int>>items(n);\n    int sum=0;\n    for(auto& [w,v]:items) { cin>>w>>v; sum+=v; }\n    const long long inf=LLONG_MAX/4;\n    vector<long long>cost(sum+1,inf);\n    cost[0]=0;\n    int top=0;\n    for(auto [w,v]:items) {\n        top+=v;\n        for(int x=top;x>=v;--x) cost[x]=min(cost[x],cost[x-v]+w);\n    }\n    while(cost[sum]>capacity) --sum;\n    cout<<sum<<'\\n';\n}\n~~~"
+}

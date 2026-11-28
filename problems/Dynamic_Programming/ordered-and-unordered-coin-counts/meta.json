@@ -1,0 +1,34 @@
+{
+  "title": "Ordered and Unordered Coin Counts",
+  "difficulty": "medium",
+  "statement": "Count ways to form T using unlimited coins, once counting distinct sequences and once counting distinct multisets.\n\nInput\nn T, then n denominations.\n\nOutput\nPrint the ordered count and the unordered count modulo 1000000007. For T=0 both counts are one.\n\nConstraints\n1 ≤ n ≤ 50. Denominations are distinct integers in [1,100000]. 0 ≤ T ≤ 100000.",
+  "samples": [
+    {
+      "input": "2 4\n1 2\n",
+      "output": "5 3\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "2",
+      "1"
+    ],
+    [
+      "6",
+      "1"
+    ],
+    [
+      "50",
+      "2"
+    ],
+    [
+      "50",
+      "3"
+    ]
+  ],
+  "editorial": "Initialize dp[0]=1. For ordered sequences loop over sums first and add all possible choices of the last coin. For unordered combinations loop over denominations first, then increasing sums. This counts a multiset once in denomination order and permits repeating the current coin. Time O(nT), space O(T).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    int n,t; cin>>n>>t;\n    vector<int>c(n),ordered(t+1),unordered(t+1);\n    for(int& x:c) cin>>x;\n    constexpr int MOD=1000000007;\n    auto add=[](int& x,int y){ x+=y; if(x>=MOD) x-=MOD; };\n    ordered[0]=unordered[0]=1;\n    for(int s=1;s<=t;++s) for(int x:c) if(x<=s) add(ordered[s],ordered[s-x]);\n    for(int x:c) for(int s=x;s<=t;++s) add(unordered[s],unordered[s-x]);\n    cout<<ordered[t]<<' '<<unordered[t]<<'\\n';\n}\n~~~"
+}

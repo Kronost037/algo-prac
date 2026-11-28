@@ -1,0 +1,30 @@
+{
+  "title": "Weighted Interval Scheduling",
+  "difficulty": "medium",
+  "statement": "Use predecessor search and dynamic programming to select a maximum-reward subset of nonoverlapping half-open screenings. The empty selection is allowed.\n\nInput\nn, then n lines start end reward. Endpoints that touch are compatible.\n\nOutput\nPrint the maximum total reward.\n\nConstraints\n1 ≤ n ≤ 200000. −10⁹ ≤ start < end ≤ 10⁹. Rewards have absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "4\n1 3 6\n3 5 4\n2 6 15\n6 7 2\n",
+      "output": "17\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "13",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Sort by finish time. For each screening find how many earlier screenings end at or before its start. Taking this screening combines its reward with the optimum on that compatible prefix. Skipping it keeps the preceding optimum. Use upper_bound so touching screenings are allowed. Time O(n log n), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Screening { int start,end,reward; };\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; cin>>n;\n    vector<Screening>a(n);\n    for(auto& item:a) cin>>item.start>>item.end>>item.reward;\n    sort(a.begin(),a.end(),[](auto x,auto y){return x.end<y.end;});\n    vector<int> ends;\n    for(auto item:a) ends.push_back(item.end);\n    vector<long long>best(n+1);\n    for(int i=0;i<n;++i) {\n        int p=upper_bound(ends.begin(),ends.begin()+i,a[i].start)-ends.begin();\n        best[i+1]=max(best[i],best[p]+a[i].reward);\n    }\n    cout<<best[n]<<'\\n';\n}\n~~~"
+}

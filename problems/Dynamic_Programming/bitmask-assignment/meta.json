@@ -1,0 +1,30 @@
+{
+  "title": "Assignment with Bitmask DP",
+  "difficulty": "hard",
+  "statement": "Assign each worker one distinct job to minimize the total cost. Use dynamic programming over job masks.\n\nInput\nn, then an n×n signed cost matrix. Row i assigns costs to worker i.\n\nOutput\nPrint the minimum cost of a complete assignment.\n\nConstraints\n1 ≤ n ≤ 20. Costs have absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "3\n7 1 9\n2 8 3\n6 4 5\n",
+      "output": "8\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "7",
+      "1"
+    ],
+    [
+      "20",
+      "2"
+    ],
+    [
+      "20",
+      "3"
+    ]
+  ],
+  "editorial": "The mask records jobs already assigned. With popcount(mask) jobs taken, that count also specifies the next worker. Try each free job and relax the state with its bit added. Every transition increases the mask. Use 64-bit costs to accommodate negative values and large totals. Time O(n·2ⁿ), space O(2ⁿ).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    int n; cin>>n;\n    vector<vector<int>>cost(n,vector<int>(n));\n    for(auto& row:cost) for(auto& x:row) cin>>x;\n    unsigned full=(1u<<n)-1;\n    vector<long long>best(full+1,LLONG_MAX/2);\n    best[0]=0;\n    for(unsigned mask=0;mask<full;++mask) {\n        int i=popcount(mask);\n        for(unsigned free=full^mask;free;) {\n            unsigned bit=free&-free;\n            free^=bit;\n            int j=countr_zero(bit);\n            best[mask|bit]=min(best[mask|bit],best[mask]+cost[i][j]);\n        }\n    }\n    cout<<best[full]<<'\\n';\n}\n~~~"
+}

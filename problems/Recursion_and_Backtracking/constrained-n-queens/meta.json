@@ -1,0 +1,38 @@
+{
+  "title": "Constrained N-Queens",
+  "difficulty": "hard",
+  "statement": "Count ways to place one queen in every row of an n×n board so no two attack, keeping all preplaced queens.\n\nInput\nn, then n rows of n characters. Q denotes a preplaced queen and . an unrestricted cell. Each row has at most one Q. Preplaced queens may conflict.\n\nOutput\nPrint the number of valid complete placements.\n\nConstraints\n1 ≤ n ≤ 14.",
+  "samples": [
+    {
+      "input": "4\n.Q..\n....\n....\n....\n",
+      "output": "1\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "4",
+      "1"
+    ],
+    [
+      "8",
+      "1"
+    ],
+    [
+      "14",
+      "0"
+    ],
+    [
+      "14",
+      "2"
+    ],
+    [
+      "13",
+      "3"
+    ]
+  ],
+  "editorial": "Process rows in order. Keep bitmasks for occupied columns and for the two diagonals attacking the current row. Intersect their complement with the row’s allowed columns. Choose one available bit and shift the updated diagonal masks for the next row. A forced square is simply a row mask with one bit. Work depends on the number of legal partial placements, with O(n) depth.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nlong long countWays(const vector<unsigned>& allowed,unsigned full,int row,unsigned cols,unsigned left,unsigned right) {\n    if (row==int(allowed.size())) return 1;\n    unsigned free=allowed[row]&~(cols|left|right);\n    long long total=0;\n    while (free) {\n        unsigned bit=free&-free;\n        free^=bit;\n        total+=countWays(allowed,full,row+1,cols|bit,((left|bit)<<1)&full,(right|bit)>>1);\n    }\n    return total;\n}\nint main() {\n    int n; cin>>n;\n    unsigned full=(1u<<n)-1;\n    vector<unsigned>allowed(n,full);\n    for(int r=0;r<n;++r) {\n        string s; cin>>s;\n        size_t col=s.find('Q');\n        if(col!=string::npos) allowed[r]=1u<<col;\n    }\n    cout<<countWays(allowed,full,0,0,0,0)<<'\\n';\n}\n~~~"
+}

@@ -1,0 +1,30 @@
+{
+  "title": "Matrix-Chain Multiplication",
+  "difficulty": "hard",
+  "statement": "Use interval DP to minimize scalar multiplications in an ordered product of matrices.\n\nInput\nn, then d0 d1 … dn. Matrix i has dimensions d(i−1)×di. Multiplying an a×b matrix by a b×c matrix costs a·b·c scalar multiplications.\n\nOutput\nPrint the minimum total cost.\n\nConstraints\n1 ≤ n ≤ 400. Every dimension is in [1,100000].",
+  "samples": [
+    {
+      "input": "3\n10 30 5 60\n",
+      "output": "4500\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "9",
+      "1"
+    ],
+    [
+      "400",
+      "2"
+    ],
+    [
+      "400",
+      "3"
+    ]
+  ],
+  "editorial": "An interval’s final multiplication splits after some matrix k. Independently optimize both halves, then add d[l]·d[k+1]·d[r+1] for zero-based matrix indices. Fill intervals in increasing length. Single matrices have zero cost. Use 64 bits for the dimension product and total. Time O(n³), space O(n²).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    int n; cin>>n;\n    vector<long long>d(n+1);\n    for(auto& x:d) cin>>x;\n    vector<vector<long long>>dp(n,vector<long long>(n));\n    for(int len=2;len<=n;++len) for(int l=0;l+len<=n;++l) {\n        int r=l+len-1;\n        dp[l][r]=LLONG_MAX;\n        for(int k=l;k<r;++k)\n            dp[l][r]=min(dp[l][r],dp[l][k]+dp[k+1][r]+d[l]*d[k+1]*d[r+1]);\n    }\n    cout<<dp[0][n-1]<<'\\n';\n}\n~~~"
+}

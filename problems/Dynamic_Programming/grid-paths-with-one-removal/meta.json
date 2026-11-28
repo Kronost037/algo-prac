@@ -1,0 +1,44 @@
+{
+  "title": "Grid Paths with One Removal",
+  "difficulty": "medium",
+  "statement": "Count paths moving only down or right from the top left to the bottom right that visit at most one blocked cell. The endpoints count as visited cells.\n\nInput\nn m, then n rows of m characters. . is open and # is blocked.\n\nOutput\nPrint the count modulo 1000000007.\n\nConstraints\n1 ≤ n,m ≤ 1000.",
+  "samples": [
+    {
+      "input": "2 3\n.#.\n..#\n",
+      "output": "1\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0",
+      "1"
+    ],
+    [
+      "6",
+      "1",
+      "7"
+    ],
+    [
+      "1",
+      "1",
+      "37"
+    ],
+    [
+      "1000",
+      "2",
+      "1000"
+    ],
+    [
+      "1000",
+      "3",
+      "1000"
+    ],
+    [
+      "1000",
+      "0",
+      "1000"
+    ]
+  ],
+  "editorial": "Track counts with zero and exactly one blocked cell visited. At an open cell, add the top and left counts independently for each state. At a blocked cell, only paths that had used zero can enter, and they now enter the one-used state. Seed a single path above the starting cell so a blocked start is handled by the same rule. Sum both states at the end. Time O(nm), space O(m).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,m; cin>>n>>m;\n    constexpr int MOD=1000000007;\n    vector<array<int,2>>dp(m+1);\n    dp[1][0]=1;\n    for(int r=0;r<n;++r) {\n        string row; cin>>row;\n        for(int c=1;c<=m;++c) {\n            int zero=(dp[c][0]+dp[c-1][0])%MOD;\n            int one=(dp[c][1]+dp[c-1][1])%MOD;\n            dp[c]=row[c-1]=='#'?array<int,2>{0,zero}:array<int,2>{zero,one};\n        }\n    }\n    cout<<(dp[m][0]+dp[m][1])%MOD<<'\\n';\n}\n~~~"
+}

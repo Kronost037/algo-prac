@@ -1,0 +1,30 @@
+{
+  "title": "Fenwick Order Statistics",
+  "difficulty": "medium",
+  "statement": "Implement a Fenwick frequency table with direct binary lifting to find the kth present value.\n\nInput\nn q, then n initial nonnegative frequencies for values 1 through n. ADD i d changes frequency i by signed d and always leaves it nonnegative. KTH k asks for the kth value in the expanded sorted multiset, counting copies.\n\nOutput\nPrint the value for each KTH, or 0 if fewer than k copies exist.\n\nConstraints\n1 ≤ n,q ≤ 200000. Frequencies and |d| are initially bounded by 10⁹, and updates may raise frequencies. 1 ≤ k ≤ 10¹⁵.",
+  "samples": [
+    {
+      "input": "5 5\n0 2 0 1 0\nKTH 2\nKTH 3\nADD 1 5\nKTH 4\nKTH 10\n",
+      "output": "2\n4\n1\n0\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "31",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "199999",
+      "3"
+    ]
+  ],
+  "editorial": "Each tree entry stores a block sum. Build the answer index one bit at a time from high to low. If the next candidate block contains fewer than k remaining copies, skip it and subtract its block sum from k. The final index is the largest prefix with fewer than the original k copies. The next value is the answer, unless the index reached n. Time O(log n) per operation, space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,q; cin>>n>>q;\n    vector<long long>tree(n+1);\n    auto add=[&](int i,long long d) {\n        for(;i<=n;i+=i&-i) tree[i]+=d;\n    };\n    for(int i=1;i<=n;++i) {\n        long long f; cin>>f;\n        add(i,f);\n    }\n    int high=bit_floor(unsigned(n));\n    while(q--) {\n        string op; cin>>op;\n        if(op==\"ADD\") {\n            int i; long long d; cin>>i>>d; add(i,d);\n        } else {\n            long long rank; cin>>rank;\n            int before=0;\n            for(int step=high;step;step/=2)\n                if(before+step<=n && tree[before+step]<rank) {\n                    before+=step;\n                    rank-=tree[before];\n                }\n            cout<<(before==n?0:before+1)<<'\\n';\n        }\n    }\n}\n~~~"
+}

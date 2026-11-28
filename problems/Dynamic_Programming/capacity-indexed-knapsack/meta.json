@@ -1,0 +1,30 @@
+{
+  "title": "Capacity-Indexed Knapsack",
+  "difficulty": "medium",
+  "statement": "Use capacity-indexed 0/1 knapsack DP to maximize total value at weight at most W. Each item can be taken once.\n\nInput\nn W, then n lines weight value.\n\nOutput\nPrint the maximum total value.\n\nConstraints\n1 ≤ n ≤ 200, 0 ≤ W ≤ 100000. Weights are positive and at most 10⁹. Values lie in [1,10⁹].",
+  "samples": [
+    {
+      "input": "3 6\n3 5\n4 7\n2 4\n",
+      "output": "11\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "12",
+      "1"
+    ],
+    [
+      "200",
+      "2"
+    ],
+    [
+      "200",
+      "3"
+    ]
+  ],
+  "editorial": "Let dp[c] be the best value with at most capacity c. For each weight w, scan capacities from W down to w, so dp[c−w] still refers to earlier items. Update with that state plus the new value. Time O(nW), space O(W). Use 64 bits for values.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    int n,w; cin>>n>>w;\n    vector<long long>dp(w+1);\n    while(n--) {\n        int weight; long long value; cin>>weight>>value;\n        for(int c=w;c>=weight;--c) dp[c]=max(dp[c],dp[c-weight]+value);\n    }\n    cout<<dp[w]<<'\\n';\n}\n~~~"
+}
