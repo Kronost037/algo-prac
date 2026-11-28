@@ -1,0 +1,30 @@
+{
+  "title": "Height, Balance, and Diameter",
+  "difficulty": "medium",
+  "statement": "Use a bottom-up tree traversal to compute height, diameter, and height balance. Height and diameter count edges. A tree is balanced if the child subtree heights differ by at most one at every node.\n\nInput\nn, then n lines value left right for nodes 1 through n; child ID 0 denotes an absent child.\n\nOutput\nPrint height, diameter, and YES or NO for balance.\n\nConstraints\n1 ≤ n ≤ 200000. Values have absolute value at most 10⁹. The child links form one rooted tree with root 1.",
+  "samples": [
+    {
+      "input": "4\n4 2 3\n2 0 4\n7 0 0\n1 0 0\n",
+      "output": "2 3 YES\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Give an empty child height −1. A node height is one plus the larger child height. A longest path whose highest node is v has length leftHeight+rightHeight+2. Track the largest such length and check the balance condition at every node. Reverse any parent-before-child traversal to get a safe bottom-up order. O(n) time and space.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Node { int value,l,r; };\nvector<Node> readTree() {\n    int n;cin>>n;\n    vector<Node>a(n+1);\n    for(int i=1;i<=n;++i)cin>>a[i].value>>a[i].l>>a[i].r;\n    return a;\n}\n\nvector<int> rootFirst(const vector<Node>& a) {\n    vector<int> order{1};\n    for(size_t i=0;i<order.size();++i){\n        int v=order[i];\n        if(a[v].l)order.push_back(a[v].l);\n        if(a[v].r)order.push_back(a[v].r);\n    }\n    return order;\n}\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    auto a=readTree();\n    auto order=rootFirst(a);\n    vector<int> height(a.size(),-1);\n    int diameter=0;bool balanced=true;\n    for(auto it=order.rbegin();it!=order.rend();++it){\n        int v=*it,l=height[a[v].l],r=height[a[v].r];\n        height[v]=max(l,r)+1;\n        diameter=max(diameter,l+r+2);\n        balanced=balanced && abs(l-r)<=1;\n    }\n    cout<<height[1]<<' '<<diameter<<' '<<(balanced?\"YES\":\"NO\")<<'\\n';\n}\n~~~"
+}

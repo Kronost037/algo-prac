@@ -1,0 +1,34 @@
+{
+  "title": "Count Sum-K Subarrays",
+  "difficulty": "medium",
+  "statement": "Use prefix sums and a frequency hash map to count all nonempty subarrays with sum K.\n\nInput\nn K, followed by n signed integers.\n\nOutput\nThe number of matching subarrays.\n\nConstraints\n1 ≤ n ≤ 200000. Array values have absolute value at most 10⁹. |K| ≤ 10¹⁴.",
+  "samples": [
+    {
+      "input": "5 0\n1 -1 0 -1 1\n",
+      "output": "6\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "39",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "1"
+    ]
+  ],
+  "editorial": "For current prefix sum s, a prior prefix contributes exactly when it equals s−K. Start the frequency table with one occurrence of zero. Count before inserting s so an empty interval is never counted. Both the prefix and the answer need 64 bits. Expected time O(n), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; long long k; cin>>n>>k;\n    unordered_map<long long,int> count;\n    count.reserve(2*n+1);\n    count[0]=1;\n    long long prefix=0,answer=0;\n    while (n--) {\n        long long x; cin>>x;\n        prefix+=x;\n        auto it=count.find(prefix-k);\n        if (it!=count.end()) answer+=it->second;\n        ++count[prefix];\n    }\n    cout<<answer<<'\\n';\n}\n~~~"
+}

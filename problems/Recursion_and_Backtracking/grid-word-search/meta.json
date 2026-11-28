@@ -1,0 +1,34 @@
+{
+  "title": "Grid Word Search",
+  "difficulty": "medium",
+  "statement": "Find whether a word can be traced by orthogonal steps in a grid. A path may not visit a cell twice.\n\nInput\nn m, n lowercase rows of length m, then one nonempty lowercase word.\n\nOutput\nPrint YES or NO.\n\nConstraints\n1 ≤ n,m ≤ 12. Word length is at most 10.",
+  "samples": [
+    {
+      "input": "2 3\nabc\ndef\nabef\n",
+      "output": "YES\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "3",
+      "1"
+    ],
+    [
+      "8",
+      "1"
+    ],
+    [
+      "12",
+      "2"
+    ],
+    [
+      "12",
+      "3"
+    ]
+  ],
+  "editorial": "Start DFS from each matching cell. Mark the current cell before exploring adjacent cells, and unmark it after the search returns. The visited set belongs to a single candidate path. For length L, at most four moves are possible initially and at most three afterward since the previous cell is marked. Space is O(nm+L).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    int n,m; cin>>n>>m;\n    vector<string>a(n);\n    for (auto& s:a) cin>>s;\n    string word; cin>>word;\n    const int dr[]={1,-1,0,0},dc[]={0,0,1,-1};\n    auto search=[&](auto&& self,int r,int c,int k) -> bool {\n        if (r<0 || r>=n || c<0 || c>=m || a[r][c]!=word[k]) return false;\n        if (k+1==int(word.size())) return true;\n        char before=a[r][c];\n        a[r][c]='.';\n        bool found=false;\n        for (int d=0;d<4 && !found;++d) found=self(self,r+dr[d],c+dc[d],k+1);\n        a[r][c]=before;\n        return found;\n    };\n    for(int r=0;r<n;++r) for(int c=0;c<m;++c) if(search(search,r,c,0)) {\n        cout<<\"YES\\n\";\n        return 0;\n    }\n    cout<<\"NO\\n\";\n}\n~~~"
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Three-Way Quickselect",
+  "difficulty": "medium",
+  "statement": "Implement randomized quickselect with a three-way partition to find the kth smallest element. Count equal elements separately in the ranking.\n\nInput\nn k, followed by n integers.\n\nOutput\nPrint the 1-based kth smallest value.\n\nConstraints\n1 ≤ n ≤ 200000. Array values have absolute value at most 10⁹. 1 ≤ k ≤ n.",
+  "samples": [
+    {
+      "input": "7 5\n4 -2 4 1 4 8 0\n",
+      "output": "4\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "55",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Pick a random pivot in the active interval. Separate values into less, equal, and greater regions with three pointers. The equal region already occupies its final rank interval. Discard both irrelevant regions and continue in the one containing k. Equal-heavy cases can finish in one pass. Expected time O(n), auxiliary space O(1).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,k; cin>>n>>k; --k;\n    vector<int>a(n);\n    for (int& x:a) cin>>x;\n    mt19937 random(random_device{}());\n    int lo=0,hi=n;\n    while (lo<hi) {\n        int pivot=a[uniform_int_distribution<int>(lo,hi-1)(random)];\n        int less=lo,i=lo,greater=hi;\n        while (i<greater) {\n            if (a[i]<pivot) swap(a[less++],a[i++]);\n            else if (a[i]>pivot) swap(a[i],a[--greater]);\n            else ++i;\n        }\n        if (k<less) hi=less;\n        else if (k>=greater) lo=greater;\n        else { cout<<pivot<<'\\n'; return 0; }\n    }\n}\n~~~"
+}

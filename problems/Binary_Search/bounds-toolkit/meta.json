@@ -1,0 +1,39 @@
+{
+  "title": "Bounds Toolkit",
+  "difficulty": "easy",
+  "statement": "Implement lower and upper bounds on a sorted array. The lower bound is the first position with value at least x, and the upper bound is the first position with value strictly greater than x.\n\nInput\nRead n q, then n integers in nondecreasing order, then q lines of TYPE x. TYPE is FIRST, LAST, or COUNT.\n\nOutput\nPrint the first or last 1-based index of x, or 0 if absent. COUNT prints its frequency.\n\nConstraints\n1 ≤ n,q ≤ 200000. Each array value and target has absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "6 5\n-2 1 1 1 3 8\nFIRST 1\nLAST 1\nCOUNT 1\nFIRST 2\nCOUNT 10\n",
+      "output": "2\n4\n3\n0\n0\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "12",
+      "0"
+    ],
+    [
+      "35",
+      "100",
+      "2"
+    ],
+    [
+      "200000",
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "200000",
+      "2"
+    ]
+  ],
+  "editorial": "Binary-search the first true index in [0,n], where n acts as the end sentinel. For the lower bound use a[i] ≥ x and for the upper bound use a[i] > x. The matching range is [lower,upper). If it is nonempty, the first 1-based index is lower+1 and the last is upper. Each query costs O(log n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint bound(const vector<int>& a, int x, bool upper) {\n    int l = 0, r = a.size();\n    while (l < r) {\n        int mid = l + (r - l) / 2;\n        if (a[mid] < x || (upper && a[mid] == x)) l = mid + 1;\n        else r = mid;\n    }\n    return l;\n}\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n, q; cin >> n >> q;\n    vector<int> a(n);\n    for (int& x : a) cin >> x;\n    while (q--) {\n        string type; int x; cin >> type >> x;\n        int lo = bound(a, x, false), hi = bound(a, x, true);\n        if (type == \"COUNT\") cout << hi - lo;\n        else if (lo == hi) cout << 0;\n        else cout << (type == \"FIRST\" ? lo + 1 : hi);\n        cout << '\\n';\n    }\n}\n~~~"
+}

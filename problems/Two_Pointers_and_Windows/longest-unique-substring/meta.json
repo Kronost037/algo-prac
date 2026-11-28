@@ -1,0 +1,34 @@
+{
+  "title": "Longest Unique Substring",
+  "difficulty": "easy",
+  "statement": "Use a sliding window to find the longest substring containing no repeated character.\n\nInput\nA nonempty lowercase English string s.\n\nOutput\nPrint the maximum length.\n\nConstraints\n1 ≤ |s| ≤ 200000.",
+  "samples": [
+    {
+      "input": "abbaef\n",
+      "output": "4\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "47",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ]
+  ],
+  "editorial": "Store the last position of each letter. When adding a repeated letter, move the left boundary just after its previous occurrence if that occurrence is inside the window. The boundary never moves backward. Time O(n) and O(1) auxiliary space.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    string s; cin>>s;\n    array<int,26> last;\n    last.fill(-1);\n    int left=0,best=0;\n    for (int r=0;r<int(s.size());++r) {\n        int c=s[r]-'a';\n        left=max(left,last[c]+1);\n        last[c]=r;\n        best=max(best,r-left+1);\n    }\n    cout<<best<<'\\n';\n}\n~~~"
+}

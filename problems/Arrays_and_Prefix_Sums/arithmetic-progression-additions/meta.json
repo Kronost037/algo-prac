@@ -1,0 +1,34 @@
+{
+  "title": "Arithmetic Progression Additions",
+  "difficulty": "medium",
+  "statement": "Apply all inclusive progression updates using difference arrays for slope and intercept.\n\nInput\nn q, the initial n values, then q lines L R x d. Add x+(i−L)d at every index i from L through R.\n\nOutput\nPrint the final values in order.\n\nConstraints\n1 ≤ n ≤ 200000, 0 ≤ q ≤ 200000, 1 ≤ L ≤ R ≤ n. Initial values, x, and d have absolute value at most 10⁶.",
+  "samples": [
+    {
+      "input": "5 2\n0 0 0 0 0\n1 3 2 3\n3 5 4 -2\n",
+      "output": "2 5 12 2 0\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "1",
+      "1"
+    ],
+    [
+      "31",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "At index i, each update contributes d·i+(x−L·d). Activate both coefficients at L and deactivate them at R+1. Prefix-sum the two difference arrays and evaluate the active linear function at each index. Use 64-bit products. Time O(n+q), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,q; cin>>n>>q;\n    vector<long long> a(n+1),slope(n+2),intercept(n+2);\n    for (int i=1;i<=n;++i) cin>>a[i];\n    while (q--) {\n        int l,r; long long x,d; cin>>l>>r>>x>>d;\n        long long b=x-l*d;\n        slope[l]+=d; slope[r+1]-=d;\n        intercept[l]+=b; intercept[r+1]-=b;\n    }\n    long long m=0,b=0;\n    for (int i=1;i<=n;++i) {\n        m+=slope[i]; b+=intercept[i];\n        cout<<a[i]+i*m+b<<(i==n?'\\n':' ');\n    }\n}\n~~~"
+}

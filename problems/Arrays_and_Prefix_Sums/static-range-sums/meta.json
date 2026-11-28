@@ -1,0 +1,50 @@
+{
+  "title": "Static Range Sums",
+  "difficulty": "easy",
+  "statement": "Implement prefix sums to answer each inclusive range-sum query in O(1) after O(n) preprocessing.\n\nInput\nThe first line contains n and q. The next line contains n signed integers. Each of the next q lines contains L R with 1 ≤ L ≤ R ≤ n.\n\nOutput\nPrint each sum on its own line.\n\nConstraints\n1 ≤ n,q ≤ 200000. Each value has absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "5 3\n3 -2 7 0 -4\n1 5\n2 4\n5 5\n",
+      "output": "4\n5\n-4\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "wide",
+      "1",
+      "4",
+      "a"
+    ],
+    [
+      "negative",
+      "1",
+      "1",
+      "a"
+    ],
+    [
+      "wide",
+      "200000",
+      "200000",
+      "a"
+    ],
+    [
+      "negative",
+      "200000",
+      "200000",
+      "a"
+    ],
+    [
+      "random",
+      "41",
+      "200",
+      "a"
+    ],
+    [
+      "random",
+      "200000",
+      "200000",
+      "b"
+    ]
+  ],
+  "editorial": "Let prefix[i] be the sum of the first i elements, with prefix[0] = 0. Subtract prefix[L−1] from prefix[R] to remove precisely the elements before L. For the sample range [2,4], the prefixes are 8 and 3, giving 5. A sum can reach 2 × 10¹⁴, so store the prefixes as long long. Total time is O(n+q), extra space O(n).\n~~~\n#include <iostream>\n#include <vector>\n\nint main() {\n    std::ios::sync_with_stdio(false);\n    std::cin.tie(nullptr);\n    int n, q;\n    std::cin >> n >> q;\n    std::vector<long long> prefix(n + 1);\n    for (int i = 1; i <= n; ++i) {\n        long long value;\n        std::cin >> value;\n        prefix[i] = prefix[i - 1] + value;\n    }\n    while (q--) {\n        int left, right;\n        std::cin >> left >> right;\n        std::cout << prefix[right] - prefix[left - 1] << '\\n';\n    }\n}\n~~~"
+}

@@ -1,0 +1,42 @@
+{
+  "title": "House Robber",
+  "difficulty": "easy",
+  "statement": "Use dynamic programming to maximize the sum of chosen positions with no adjacent choices. Solve for both a line and a cycle.\n\nInput\nn, then n signed values. For the cycle, positions 1 and n are adjacent when n≥2. Empty selection is allowed.\n\nOutput\nPrint the line optimum followed by the cycle optimum.\n\nConstraints\n1 ≤ n ≤ 200000. Each value has absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "5\n7 -2 4 -1 6\n",
+      "output": "17 11\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "1",
+      "1"
+    ],
+    [
+      "2",
+      "1"
+    ],
+    [
+      "15",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "199999",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "For a path, either skip the newest position and keep the previous optimum, or take it and extend the optimum from two positions back. A cycle cannot use both endpoints. Solve the two paths obtained by excluding the first or last position and keep the better answer. A singleton can be taken in either version. Time O(n), auxiliary space O(1) beyond input.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nlong long best(const vector<int>& a,int l,int r) {\n    long long two=0,one=0;\n    for (int i=l;i<r;++i) {\n        long long next=max(one,two+a[i]);\n        two=one;\n        one=next;\n    }\n    return one;\n}\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; cin>>n;\n    vector<int>a(n);\n    for (int& x:a) cin>>x;\n    long long line=best(a,0,n);\n    cout<<line<<' '<<(n==1?line:max(best(a,1,n),best(a,0,n-1)))<<'\\n';\n}\n~~~"
+}

@@ -1,0 +1,30 @@
+{
+  "title": "First Greater After Updates",
+  "difficulty": "hard",
+  "statement": "Use subtree maxima to find the first position in a range above a threshold after point assignments.\n\nInput\nn q, then n values. SET i x assigns a[i]=x. FIRST L R x queries an inclusive 1-based range.\n\nOutput\nPrint the smallest qualifying index, or 0 if every value in the range is at most x.\n\nConstraints\n1 ≤ n ≤ 200000. Each value has absolute value at most 10⁹. 1 ≤ q ≤ 200000. Thresholds and assigned values have the same bounds.",
+  "samples": [
+    {
+      "input": "5 4\n1 8 2 4 9\nFIRST 2 4 4\nFIRST 3 4 4\nSET 3 7\nFIRST 3 5 4\n",
+      "output": "2\n0\n3\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "53",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "199999",
+      "3"
+    ]
+  ],
+  "editorial": "Store the maximum at every node. Reject nodes outside the query range or whose maximum is at most the threshold. Visit the left child before the right and stop at the first matching leaf. Boundary nodes and the path to the first answer account for O(log n) visits, with failing subtrees rejected at their roots. Updates also take O(log n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nclass MaxTree {\n    int size;\n    vector<int> tree;\n    int first(int node,int l,int r,int ql,int qr,int x) const {\n        if(r<ql || l>qr || tree[node]<=x) return 0;\n        if(l==r) return l;\n        int mid=(l+r)/2;\n        int left=first(node*2,l,mid,ql,qr,x);\n        return left?left:first(node*2+1,mid+1,r,ql,qr,x);\n    }\npublic:\n    explicit MaxTree(const vector<int>& a):size(bit_ceil(unsigned(a.size()))),tree(size*2,INT_MIN) {\n        copy(a.begin(),a.end(),tree.begin()+size);\n        for(int i=size-1;i;--i) tree[i]=max(tree[2*i],tree[2*i+1]);\n    }\n    void set(int i,int x) {\n        int p=size+i-1;\n        tree[p]=x;\n        while((p/=2)>0) tree[p]=max(tree[2*p],tree[2*p+1]);\n    }\n    int first(int l,int r,int x) const { return first(1,1,size,l,r,x); }\n};\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,q; cin>>n>>q;\n    vector<int>a(n);\n    for(int& x:a) cin>>x;\n    MaxTree t(a);\n    while(q--) {\n        string op; int l,r,x; cin>>op>>l>>r;\n        if(op==\"SET\") t.set(l,r);\n        else { cin>>x; cout<<t.first(l,r,x)<<'\\n'; }\n    }\n}\n~~~"
+}

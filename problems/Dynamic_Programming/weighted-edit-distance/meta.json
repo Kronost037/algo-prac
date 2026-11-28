@@ -1,0 +1,39 @@
+{
+  "title": "Weighted Edit Distance",
+  "difficulty": "medium",
+  "statement": "Find the minimum cost to transform string a into b. Insertions, deletions, and replacements have independent costs.\n\nInput\nRead two nonempty lowercase strings a and b, then insertion, deletion, and replacement costs. Matching equal letters costs zero.\n\nOutput\nPrint the minimum total cost.\n\nConstraints\n1 ≤ |a|,|b| ≤ 4000. Each cost is in [0,10⁹].",
+  "samples": [
+    {
+      "input": "cat\ncut\n2 3 9\n",
+      "output": "5\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0",
+      "1"
+    ],
+    [
+      "19",
+      "1",
+      "47"
+    ],
+    [
+      "4000",
+      "3",
+      "4000"
+    ],
+    [
+      "4000",
+      "4",
+      "3999"
+    ],
+    [
+      "4000",
+      "2",
+      "1"
+    ]
+  ],
+  "editorial": "Let the state measure the cost to transform a source prefix into a target prefix. Consider deleting the last source character, inserting the last target character, or aligning them with a match or replacement. Initialize the empty-prefix row with insertion costs and the empty-prefix column with deletion costs. Keep two rows and use 64-bit arithmetic. Time O(|a||b|), space O(|b|).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    string a,b;\n    long long ins,del,rep;\n    cin>>a>>b>>ins>>del>>rep;\n    vector<long long>prev(b.size()+1),cur(b.size()+1);\n    for(int j=1;j<=int(b.size());++j) prev[j]=j*ins;\n    for(int i=1;i<=int(a.size());++i) {\n        cur[0]=i*del;\n        for(int j=1;j<=int(b.size());++j)\n            cur[j]=min({prev[j]+del,cur[j-1]+ins,prev[j-1]+(a[i-1]==b[j-1]?0:rep)});\n        swap(prev,cur);\n    }\n    cout<<prev.back()<<'\\n';\n}\n~~~"
+}

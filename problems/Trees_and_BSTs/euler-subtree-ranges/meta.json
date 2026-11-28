@@ -1,0 +1,30 @@
+{
+  "title": "Euler Subtree Ranges",
+  "difficulty": "hard",
+  "statement": "Flatten a rooted tree and support subtree additions and subtree sums. The root is node 1. A subtree includes its root.\n\nInput\nn q, n initial node values, n−1 undirected edges, then q operations. ADD u x adds x to every node in subtree u. SUM u queries the sum in subtree u.\n\nOutput\nPrint one answer per SUM.\n\nConstraints\n1 ≤ n,q ≤ 200000. Initial values and x have absolute value at most 10⁶.",
+  "samples": [
+    {
+      "input": "5 4\n1 2 3 4 5\n1 2\n1 3\n2 4\n2 5\nSUM 2\nADD 2 7\nSUM 1\nSUM 3\n",
+      "output": "11\n36\n3\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "An enter/exit DFS makes every subtree a contiguous interval. Two Fenwick trees store the difference-array change d[i] and (i−1)d[i]. The prefix sum through x is x times the first prefix minus the second. Range additions toggle the difference at each end. Build in O(n log n), answer in O(log n), and store O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nclass Fenwick{\n    vector<long long>t;\npublic:\n    explicit Fenwick(int n):t(n+1){}\n    void add(int i,long long x){for(;i<int(t.size());i+=i&-i)t[i]+=x;}\n    long long sum(int i)const{long long s=0;for(;i;i-=i&-i)s+=t[i];return s;}\n};\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int n,q;cin>>n>>q;\n    vector<int>a(n+1);\n    for(int i=1;i<=n;++i)cin>>a[i];\n    vector<vector<int>>g(n+1);\n    for(int i=1;i<n;++i){int u,v;cin>>u>>v;g[u].push_back(v);g[v].push_back(u);}\n    vector<int>in(n+1),out(n+1);\n    vector<pair<int,int>> stack{{1,0}};\n    int timer=0;\n    while(!stack.empty()){\n        auto [v,p]=stack.back();stack.pop_back();\n        if(v<0){out[-v]=timer;continue;}\n        in[v]=++timer;stack.emplace_back(-v,p);\n        for(int u:g[v])if(u!=p)stack.emplace_back(u,v);\n    }\n    Fenwick slope(n),offset(n);\n    auto point=[&](int i,long long x){slope.add(i,x);offset.add(i,(i-1)*x);};\n    auto add=[&](int l,int r,long long x){point(l,x);point(r+1,-x);};\n    auto prefix=[&](int i){return i*slope.sum(i)-offset.sum(i);};\n    for(int v=1;v<=n;++v)add(in[v],in[v],a[v]);\n    while(q--){\n        string op;int u;cin>>op>>u;\n        if(op==\"ADD\"){int x;cin>>x;add(in[u],out[u],x);}\n        else cout<<prefix(out[u])-prefix(in[u]-1)<<'\\n';\n    }\n}\n~~~"
+}

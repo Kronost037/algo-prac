@@ -1,0 +1,44 @@
+{
+  "title": "Rectangle Sums",
+  "difficulty": "easy",
+  "statement": "Build a two-dimensional prefix sum table to answer inclusive rectangle sums.\n\nInput\nn m q, then n rows of m signed values, then q lines r1 c1 r2 c2 with valid 1-based corners in increasing order.\n\nOutput\nOne sum per query.\n\nConstraints\n1 ≤ n,m ≤ 1000, 1 ≤ q ≤ 200000. Values have absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "2 3 2\n1 -2 3\n4 5 6\n1 2 2 3\n2 1 2 1\n",
+      "output": "12\n4\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0",
+      "1"
+    ],
+    [
+      "1",
+      "1",
+      "33"
+    ],
+    [
+      "37",
+      "1",
+      "1"
+    ],
+    [
+      "19",
+      "1",
+      "21"
+    ],
+    [
+      "500",
+      "2",
+      "500"
+    ],
+    [
+      "500",
+      "3",
+      "500"
+    ]
+  ],
+  "editorial": "Let P[r][c] sum the rectangle from (1,1) through (r,c). Build it by adding the top and left prefixes and subtracting their common corner. For a query subtract the rows above and columns to the left, then add back their intersection. A zero row and column handle boundary queries. Use 64-bit sums. Time O(nm+q), space O(nm).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    int n,m,q; cin >> n >> m >> q;\n    vector<vector<long long>> p(n+1,vector<long long>(m+1));\n    for (int r=1;r<=n;++r) for (int c=1;c<=m;++c) {\n        long long x; cin>>x;\n        p[r][c]=x+p[r-1][c]+p[r][c-1]-p[r-1][c-1];\n    }\n    while (q--) {\n        int a,b,c,d; cin>>a>>b>>c>>d;\n        cout<<p[c][d]-p[a-1][d]-p[c][b-1]+p[a-1][b-1]<<'\\n';\n    }\n}\n~~~"
+}

@@ -1,0 +1,54 @@
+{
+  "title": "Second Greater Position",
+  "difficulty": "medium",
+  "statement": "Use two monotonic stacks. For each index i, consider indices j > i with a[j] > a[i], in increasing index order. Return the second such index, or 0 if fewer than two exist.\n\nInput\nThe first line contains n. The second line contains n integers.\n\nOutput\nPrint n answers in index order, using 1-based positions.\n\nConstraints\n1 ≤ n ≤ 200000. Each value has absolute value at most 10⁹. Aim for O(n) time.",
+  "samples": [
+    {
+      "input": "6\n2 9 4 4 3 10\n",
+      "output": "3 0 0 0 0 0\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "equal",
+      "1",
+      "0"
+    ],
+    [
+      "equal",
+      "200000",
+      "1"
+    ],
+    [
+      "increasing",
+      "200000",
+      "2"
+    ],
+    [
+      "decreasing",
+      "200000",
+      "3"
+    ],
+    [
+      "plateau",
+      "200000",
+      "4"
+    ],
+    [
+      "alternating",
+      "200000",
+      "5"
+    ],
+    [
+      "random",
+      "37",
+      "6"
+    ],
+    [
+      "random",
+      "200000",
+      "7"
+    ]
+  ],
+  "editorial": "For [2,9,4], index 3 is the second greater position for index 1 because both 9 and 4 exceed 2. Keep indices waiting for their first hit and indices waiting for their second hit, each with nonincreasing values from bottom to top. A new value resolves all smaller tops in the second stack. Then move all smaller tops from the first stack to the second in reverse pop order. This restores nonincreasing order: existing tops are at least the current value, and moved values are smaller. Resolving the second stack first ensures a position contributes at most one hit to any index. Each index is pushed and popped a constant number of times, for O(n) time and space.\n~~~\n#include <iostream>\n#include <vector>\n\nint main() {\n    std::ios::sync_with_stdio(false);\n    std::cin.tie(nullptr);\n    int n;\n    std::cin >> n;\n    std::vector<int> a(n), answer(n), waitingFirst, waitingSecond, moved;\n    for (int& x : a) std::cin >> x;\n    for (int i = 0; i < n; ++i) {\n        while (!waitingSecond.empty() && a[waitingSecond.back()] < a[i]) {\n            answer[waitingSecond.back()] = i + 1;\n            waitingSecond.pop_back();\n        }\n        while (!waitingFirst.empty() && a[waitingFirst.back()] < a[i]) {\n            moved.push_back(waitingFirst.back());\n            waitingFirst.pop_back();\n        }\n        while (!moved.empty()) {\n            waitingSecond.push_back(moved.back());\n            moved.pop_back();\n        }\n        waitingFirst.push_back(i);\n    }\n    for (int i = 0; i < n; ++i) std::cout << answer[i] << (i + 1 == n ? '\\n' : ' ');\n}\n~~~"
+}

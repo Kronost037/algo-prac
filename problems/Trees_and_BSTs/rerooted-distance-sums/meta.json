@@ -1,0 +1,30 @@
+{
+  "title": "Rerooted Distance Sums",
+  "difficulty": "hard",
+  "statement": "Compute the sum of distances from every node to all other nodes in an unweighted tree.\n\nInput\nn, then n−1 undirected edges among nodes 1 through n.\n\nOutput\nPrint n sums in node order.\n\nConstraints\n1 ≤ n ≤ 200000.",
+  "samples": [
+    {
+      "input": "4\n1 2\n2 3\n2 4\n",
+      "output": "5 3 5 5\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "First root at node 1, compute the sum of depths and accumulate subtree sizes in reverse order. Moving the root across an edge into child v shifts size[v] distances down by one and the other n−size[v] distances up by one. Thus answer[v]=answer[parent]+n−2·size[v]. Use 64-bit totals and iterative traversals. Time and space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int n;cin>>n;\n    vector<vector<int>>g(n+1);\n    for(int i=1;i<n;++i){int u,v;cin>>u>>v;g[u].push_back(v);g[v].push_back(u);}\n    vector<int>parent(n+1),depth(n+1),size(n+1,1),order{1};\n    vector<long long>answer(n+1);\n    for(size_t i=0;i<order.size();++i){\n        int v=order[i];answer[1]+=depth[v];\n        for(int u:g[v])if(u!=parent[v]){parent[u]=v;depth[u]=depth[v]+1;order.push_back(u);}\n    }\n    for(int i=n-1;i>0;--i)size[parent[order[i]]]+=size[order[i]];\n    for(int i=1;i<n;++i){int v=order[i];answer[v]=answer[parent[v]]+n-2LL*size[v];}\n    for(int i=1;i<=n;++i)cout<<answer[i]<<(i==n?'\\n':' ');\n}\n~~~"
+}

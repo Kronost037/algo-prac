@@ -1,0 +1,38 @@
+{
+  "title": "Merge and Count Inversions",
+  "difficulty": "medium",
+  "statement": "Count pairs i < j with a[i] > a[j] during merge sort.\n\nInput\nn, followed by n signed values.\n\nOutput\nPrint the inversion count.\n\nConstraints\n1 ≤ n ≤ 200000. Array values have absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "5\n3 1 3 2 1\n",
+      "output": "6\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "51",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Recursively split the half-open range in half, sort both halves, and merge the smallest available fronts into a buffer. Take from the left half on equality. When taking a strictly smaller right value, every remaining left value forms one inversion with it. Each recursion level uses O(n) work, and the buffer can be shared. Time O(n log n), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nlong long solve(vector<int>& a,vector<int>& buffer,int l,int r) {\n    if (r-l<2) return 0;\n    int m=l+(r-l)/2;\n    long long answer=solve(a,buffer,l,m);\n    answer+=solve(a,buffer,m,r);\n    int i=l,j=m;\n    for (int k=l;k<r;++k) {\n        if (j==r || (i<m && a[i]<=a[j])) buffer[k]=a[i++];\n        else {\n            buffer[k]=a[j++];\n            answer+=m-i;\n        }\n    }\n    copy(buffer.begin()+l,buffer.begin()+r,a.begin()+l);\n    return answer;\n}\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; cin>>n;\n    vector<int>a(n),buffer(n);\n    for (int& x:a) cin>>x;\n    cout<<solve(a,buffer,0,n)<<'\\n';\n}\n~~~"
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Streaming Kth Largest",
+  "difficulty": "easy",
+  "statement": "Use a size-k min-heap to maintain the kth largest value as numbers arrive. Equal values occupy separate ranks.\n\nInput\nn k, then n integers with 1 ≤ k ≤ n.\n\nOutput\nPrint the kth largest after each insertion starting at insertion k.\n\nConstraints\n1 ≤ n ≤ 200000. Each value has absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "5 3\n5 0 5 -2 7\n",
+      "output": "0\n0\n5\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "33",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "4"
+    ]
+  ],
+  "editorial": "Push the new value and discard the smallest when the heap exceeds k elements. The retained heap contains the k largest values with multiplicity, so its minimum is the answer once it has k entries. Time O(n log(k+1)), space O(k).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,k; cin>>n>>k;\n    priority_queue<int,vector<int>,greater<int>> top;\n    for (int i=1;i<=n;++i) {\n        int x; cin>>x;\n        top.push(x);\n        if (int(top.size())>k) top.pop();\n        if (i>=k) cout<<top.top()<<'\\n';\n    }\n}\n~~~"
+}

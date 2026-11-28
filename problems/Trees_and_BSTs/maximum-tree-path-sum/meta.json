@@ -1,0 +1,30 @@
+{
+  "title": "Maximum Tree Path Sum",
+  "difficulty": "medium",
+  "statement": "Find the largest sum of values on a nonempty simple path between any two nodes.\n\nInput\nn, then n lines value left right for nodes 1 through n; child ID 0 denotes an absent child.\n\nOutput\nPrint the maximum path sum.\n\nConstraints\n1 ≤ n ≤ 200000. Values have absolute value at most 10⁹. The child links form one rooted tree with root 1.",
+  "samples": [
+    {
+      "input": "4\n4 2 3\n2 0 4\n7 0 0\n1 0 0\n",
+      "output": "14\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "A downward path returned to a parent can use only one child. A path completed at v can use both child contributions independently, taking only positive extensions. Track the best completed path over every node. Initialize below any possible sum to handle all-negative trees. Time and space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Node { int value,l,r; };\nvector<Node> readTree() {\n    int n;cin>>n;\n    vector<Node>a(n+1);\n    for(int i=1;i<=n;++i)cin>>a[i].value>>a[i].l>>a[i].r;\n    return a;\n}\n\nvector<int> rootFirst(const vector<Node>& a) {\n    vector<int> order{1};\n    for(size_t i=0;i<order.size();++i){\n        int v=order[i];\n        if(a[v].l)order.push_back(a[v].l);\n        if(a[v].r)order.push_back(a[v].r);\n    }\n    return order;\n}\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    auto a=readTree();auto order=rootFirst(a);\n    vector<long long> down(a.size());\n    long long answer=LLONG_MIN;\n    for(auto it=order.rbegin();it!=order.rend();++it){\n        int v=*it;\n        long long l=max(0LL,down[a[v].l]),r=max(0LL,down[a[v].r]);\n        answer=max(answer,a[v].value+l+r);\n        down[v]=a[v].value+max(l,r);\n    }\n    cout<<answer<<'\\n';\n}\n~~~"
+}

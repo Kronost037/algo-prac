@@ -1,0 +1,44 @@
+{
+  "title": "Lazy Assignment and Addition",
+  "difficulty": "hard",
+  "statement": "Implement a lazy segment tree for interleaved inclusive range assignment, range addition, and range-sum queries.\n\nInput\nRead n q and n initial values. Then read q operations. SET L R X assigns X to every value in the range. ADD L R X adds X to every value in the range. SUM L R asks for the range sum.\n\nOutput\nFor every SUM, print its answer in operation order.\n\nConstraints\n1 ≤ n,q ≤ 200000, 1 ≤ L ≤ R ≤ n. Initial values and X have absolute value at most 10⁶.",
+  "samples": [
+    {
+      "input": "5 8\n1 2 3 4 5\nADD 1 5 2\nSET 2 4 0\nSUM 1 5\nADD 3 5 -1\nSUM 3 5\nSET 1 5 4\nADD 2 3 3\nSUM 1 4\n",
+      "output": "10\n4\n22\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "100",
+      "1"
+    ],
+    [
+      "19",
+      "700",
+      "0"
+    ],
+    [
+      "25",
+      "120",
+      "1"
+    ],
+    [
+      "200000",
+      "200000",
+      "1"
+    ],
+    [
+      "199999",
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "200000",
+      "2"
+    ]
+  ],
+  "editorial": "Each node stores its sum and a pending transform: an optional assignment followed by an addition. A new assignment replaces both old operations. A new addition appends to the pending addition. Push the assignment to each child before pushing the addition, then clear the parent tag. In the sample, the first assignment discards earlier additions on positions 2–4, while the final ADD survives the preceding SET. A separate flag distinguishes assigning zero from having no assignment. Build in O(n), then spend O(log n) per operation and O(n) space.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Node {\n    long long sum = 0, assignment = 0, addition = 0;\n    bool assigned = false;\n};\n\nclass Tree {\n    vector<Node> t;\n    void build(int v, int l, int r, const vector<long long>& a) {\n        if (l == r) { t[v].sum = a[l]; return; }\n        int m = (l + r) / 2;\n        build(2*v, l, m, a);\n        build(2*v+1, m+1, r, a);\n        pull(v);\n    }\n    void pull(int v) { t[v].sum = t[2*v].sum + t[2*v+1].sum; }\n    void set(int v, int length, long long x) { t[v] = {length*x, x, 0, true}; }\n    void add(int v, int length, long long x) {\n        t[v].sum += length*x;\n        t[v].addition += x;\n    }\n    void push(int v, int leftLength, int rightLength) {\n        auto& node = t[v];\n        if (node.assigned) {\n            set(2*v, leftLength, node.assignment);\n            set(2*v+1, rightLength, node.assignment);\n            node.assigned = false;\n        }\n        if (node.addition != 0) {\n            add(2*v, leftLength, node.addition);\n            add(2*v+1, rightLength, node.addition);\n            node.addition = 0;\n        }\n    }\npublic:\n    explicit Tree(const vector<long long>& a) : t(4*a.size()) {\n        build(1, 0, int(a.size()) - 1, a);\n    }\n    long long apply(int v, int l, int r, int ql, int qr, const string& op, long long x) {\n        if (ql <= l && r <= qr) {\n            if (op == \"SET\") set(v, r-l+1, x);\n            else if (op == \"ADD\") add(v, r-l+1, x);\n            return t[v].sum;\n        }\n        int m = (l + r) / 2;\n        push(v, m-l+1, r-m);\n        long long answer = 0;\n        if (ql <= m) answer += apply(2*v, l, m, ql, qr, op, x);\n        if (qr > m) answer += apply(2*v+1, m+1, r, ql, qr, op, x);\n        pull(v);\n        return answer;\n    }\n};\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n, q; cin >> n >> q;\n    vector<long long> a(n);\n    for (auto& x : a) cin >> x;\n    Tree tree(a);\n    while (q--) {\n        string op;\n        int l, r;\n        long long x = 0;\n        cin >> op >> l >> r;\n        if (op != \"SUM\") cin >> x;\n        long long answer = tree.apply(1, 0, n-1, l-1, r-1, op, x);\n        if (op == \"SUM\") cout << answer << '\\n';\n    }\n}\n~~~"
+}

@@ -1,0 +1,30 @@
+{
+  "title": "Zero–One BFS",
+  "difficulty": "medium",
+  "statement": "Use a deque for shortest paths when edge weights are 0 or 1.\n\nInput\nn m q s, then m directed edges u v w, then q target vertex IDs.\n\nOutput\nPrint the minimum cost to each target, or −1 if unreachable.\n\nConstraints\n1 ≤ n ≤ 200000, 0 ≤ m ≤ 200000. Endpoints are in [1,n]. Parallel edges and self-loops are allowed. 1 ≤ q ≤ 200000. Weights are 0 or 1.",
+  "samples": [
+    {
+      "input": "5 5 4 1\n1 2 1\n1 3 0\n3 2 0\n2 4 1\n3 4 1\n2 4 5 1\n",
+      "output": "0\n1\n-1\n0\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Relax a 0 edge by placing its target at the front and a 1 edge by placing it at the back. Each queued entry carries its distance, and stale entries are skipped. With these two weights the deque processes current entries in nondecreasing distance. Each vertex expands once and each edge is considered once. O(n+m+q) time and O(n+m) space.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int n,m,q,s;cin>>n>>m>>q>>s;\n    vector<vector<pair<int,int>>>g(n+1);\n    while(m--){int u,v,w;cin>>u>>v>>w;g[u].emplace_back(v,w);}\n    const long long inf=LLONG_MAX/4;\n    vector<long long>d(n+1,inf);\n    deque<pair<long long,int>>open;\n    open.emplace_back(0,s);d[s]=0;\n    while(!open.empty()){\n        auto [cost,v]=open.front();open.pop_front();\n        if(cost!=d[v])continue;\n        for(auto [u,w]:g[v]){\n            if(cost+w>=d[u])continue;\n            d[u]=cost+w;\n            if(w)open.emplace_back(d[u],u);else open.emplace_front(d[u],u);\n        }\n    }\n    while(q--){int v;cin>>v;cout<<(d[v]==inf?-1:d[v])<<'\\n';}\n}\n~~~"
+}

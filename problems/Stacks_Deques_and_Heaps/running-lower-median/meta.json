@@ -1,0 +1,38 @@
+{
+  "title": "Running Lower Median",
+  "difficulty": "medium",
+  "statement": "Use two heaps to maintain the lower median as numbers arrive.\n\nInput\nn, then n integers.\n\nOutput\nPrint one median after each insertion. For an even number of values use the smaller middle value.\n\nConstraints\n1 ≤ n ≤ 200000. Each value has absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "5\n5 0 5 -2 7\n",
+      "output": "5\n0\n5\n0\n5\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "33",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "4"
+    ]
+  ],
+  "editorial": "Keep a max-heap for the lower half and a min-heap for the upper half. Keep the lower heap equal in size or one larger. Insert according to the lower maximum and rebalance by moving a boundary element. The lower maximum is the median, including on even-sized prefixes. Time O(n log n), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; cin>>n;\n    priority_queue<int> low;\n    priority_queue<int,vector<int>,greater<int>> high;\n    while (n--) {\n        int x; cin>>x;\n        if (low.empty() || x<=low.top()) low.push(x);\n        else high.push(x);\n        if (low.size()>high.size()+1) { high.push(low.top()); low.pop(); }\n        if (high.size()>low.size()) { low.push(high.top()); high.pop(); }\n        cout<<low.top()<<'\\n';\n    }\n}\n~~~"
+}

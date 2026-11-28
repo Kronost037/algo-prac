@@ -1,0 +1,30 @@
+{
+  "title": "Minimum Coin Queries",
+  "difficulty": "medium",
+  "statement": "Precompute the minimum number of unlimited coins for all queried sums.\n\nInput\nn q, then n denominations, then q targets.\n\nOutput\nFor each target print the minimum count or −1 if unreachable. Zero needs zero coins.\n\nConstraints\n1 ≤ n ≤ 50. Denominations are distinct integers in [1,100000]. 1 ≤ q ≤ 200000. Each target is in [0,100000].",
+  "samples": [
+    {
+      "input": "2 4\n3 5\n0 6 7 8\n",
+      "output": "0\n2\n-1\n2\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "4",
+      "1"
+    ],
+    [
+      "50",
+      "2"
+    ],
+    [
+      "50",
+      "3"
+    ]
+  ],
+  "editorial": "For a positive sum try each possible last coin. If the remaining sum is reachable, append that coin. Every transition uses a smaller sum. Precompute once through the largest target and retain an unreachable sentinel. Time O(n·maxTarget+q), space O(maxTarget+q).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,q; cin>>n>>q;\n    vector<int>coins(n),targets(q);\n    for(int& x:coins) cin>>x;\n    for(int& t:targets) cin>>t;\n    int top=*max_element(targets.begin(),targets.end()),inf=top+1;\n    vector<int>dp(top+1,inf);\n    dp[0]=0;\n    for(int s=1;s<=top;++s)\n        for(int x:coins) if(x<=s) dp[s]=min(dp[s],dp[s-x]+1);\n    for(int t:targets) cout<<(dp[t]==inf?-1:dp[t])<<'\\n';\n}\n~~~"
+}

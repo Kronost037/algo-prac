@@ -1,0 +1,38 @@
+{
+  "title": "Ordered Affine Composition",
+  "difficulty": "medium",
+  "statement": "Use an iterative segment tree for point updates and ordered composition of affine functions. Function i maps x to ai·x+bi modulo m.\n\nInput\nn q m, then n lines a b. SET i a b replaces one function. APPLY L R x applies functions L through R to x, in increasing index order. Indices are 1-based and ranges inclusive.\n\nOutput\nPrint one residue for each APPLY, in input order.\n\nConstraints\n1 ≤ n,q ≤ 200000. 1 ≤ m ≤ 10⁹+7. All coefficients and input x lie in [0,m−1].",
+  "samples": [
+    {
+      "input": "3 4 100\n2 1\n3 4\n1 7\nAPPLY 1 3 2\nAPPLY 2 2 5\nSET 2 0 3\nAPPLY 1 3 20\n",
+      "output": "26\n19\n10\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "1",
+      "1"
+    ],
+    [
+      "25",
+      "1"
+    ],
+    [
+      "77",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "199999",
+      "3"
+    ]
+  ],
+  "editorial": "For adjacent blocks L and R, their merge represents R(L(x)). Its coefficients are (Ra·La, Ra·Lb+Rb) modulo m. This operation is associative but generally changes if reversed. During an iterative query append intervals found on the left to a left accumulator, and prepend intervals found on the right to a right accumulator. Merge those two in that order. Identity is (1 mod m,0). Build in O(n); each operation is O(log n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nstruct Function { long long a,b; };\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,q;\n    long long mod;\n    cin>>n>>q>>mod;\n    auto join=[mod](Function left,Function right) {\n        return Function{right.a*left.a%mod,(right.a*left.b+right.b)%mod};\n    };\n    Function identity{1%mod,0};\n    int size=1;\n    while (size<n) size*=2;\n    vector<Function>tree(2*size,identity);\n    for (int i=0;i<n;++i) cin>>tree[size+i].a>>tree[size+i].b;\n    for (int i=size-1;i>=1;--i) tree[i]=join(tree[i*2],tree[i*2+1]);\n    while (q--) {\n        string op; cin>>op;\n        if (op==\"SET\") {\n            int i; Function function;\n            cin>>i>>function.a>>function.b;\n            int node=size+i-1;\n            tree[node]=function;\n            while ((node/=2)>0) tree[node]=join(tree[2*node],tree[2*node+1]);\n        } else {\n            int l,r; long long x;\n            cin>>l>>r>>x;\n            Function left=identity,right=identity;\n            for (l+=size-1,r+=size;l<r;l/=2,r/=2) {\n                if (l%2) left=join(left,tree[l++]);\n                if (r%2) right=join(tree[--r],right);\n            }\n            auto answer=join(left,right);\n            cout<<(answer.a*x+answer.b)%mod<<'\\n';\n        }\n    }\n}\n~~~"
+}

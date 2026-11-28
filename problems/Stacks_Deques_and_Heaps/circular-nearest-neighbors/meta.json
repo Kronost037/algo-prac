@@ -1,0 +1,38 @@
+{
+  "title": "Circular Nearest Neighbors",
+  "difficulty": "medium",
+  "statement": "Use monotonic stacks to find the nearest strictly greater or smaller value in either direction around a circular array. Stop after n−1 steps.\n\nInput\nn q, then n integers and q lines type i with 1 ≤ i ≤ n. Types 1, 2, 3, 4 mean next greater, next smaller, previous greater, previous smaller. Moving next after n reaches 1, and moving previous from 1 reaches n.\n\nOutput\nPrint the distance in steps, or 0 if no index qualifies.\n\nConstraints\n1 ≤ n ≤ 200000. Array values have absolute value at most 10⁹. 1 ≤ q ≤ 200000.",
+  "samples": [
+    {
+      "input": "4 4\n3 1 4 2\n1 4\n2 2\n3 2\n4 1\n",
+      "output": "1\n0\n1\n1\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "41",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "1"
+    ]
+  ],
+  "editorial": "View each direction as a forward scan by reversing the indexing for previous queries. In a doubled array, scan right-to-left for the nearest qualifying position. Pop values that are equal or on the wrong side of the comparison. For a position in the first copy accept the top only if its distance is less than n. Four passes take O(n), storing O(n) answers and giving O(1) per query.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,q; cin>>n>>q;\n    vector<int>a(n);\n    for (auto& x:a) cin>>x;\n    array<vector<int>,4> answers;\n    for (int type=0;type<4;++type) {\n        auto index=[&](int i) { return type<2?i%n:n-1-i%n; };\n        answers[type].resize(n);\n        vector<int> stack;\n        for (int i=2*n-1;i>=0;--i) {\n            int x=a[index(i)];\n            while (!stack.empty()) {\n                int y=a[index(stack.back())];\n                if (type%2==0?y>x:y<x) break;\n                stack.pop_back();\n            }\n            if (i<n && !stack.empty() && stack.back()-i<n)\n                answers[type][index(i)]=stack.back()-i;\n            stack.push_back(i);\n        }\n    }\n    while (q--) {\n        int t,i; cin>>t>>i;\n        cout<<answers[t-1][i-1]<<'\\n';\n    }\n}\n~~~"
+}

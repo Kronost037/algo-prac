@@ -1,0 +1,42 @@
+{
+  "title": "Kadane with Endpoints",
+  "difficulty": "easy",
+  "statement": "Use Kadane’s algorithm to find the maximum-sum nonempty subarray. On ties choose the shortest, then the earliest starting index.\n\nInput\nRead n followed by n signed integers.\n\nOutput\nPrint the sum and its 1-based inclusive endpoints L R.\n\nConstraints\n1 ≤ n ≤ 200000. Every element has absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "7\n0 3 -3 3 0 -5 3\n",
+      "output": "3 2 2\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "4"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "4"
+    ]
+  ],
+  "editorial": "Keep the best subarray ending at the current position. Start fresh whenever the previous ending sum is nonpositive. In the zero case, restarting preserves the sum and reduces the length. Compare each ending candidate with the global answer by sum, then length, then starting index. Initialize the answer below all valid sums to handle all-negative arrays. Time O(n), extra space O(1).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; cin >> n;\n    long long ending = 0, best = LLONG_MIN;\n    int start = 1, left = 1, right = 1;\n    for (int i = 1; i <= n; ++i) {\n        long long x; cin >> x;\n        if (ending <= 0) {\n            ending = 0;\n            start = i;\n        }\n        ending += x;\n        int len = i - start, bestLen = right - left;\n        if (ending > best || (ending == best &&\n            (len < bestLen || (len == bestLen && start < left)))) {\n            best = ending;\n            left = start;\n            right = i;\n        }\n    }\n    cout << best << ' ' << left << ' ' << right << '\\n';\n}\n~~~"
+}

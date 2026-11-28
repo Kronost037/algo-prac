@@ -1,0 +1,30 @@
+{
+  "title": "Two Unpaired Values",
+  "difficulty": "medium",
+  "statement": "Use XOR and one distinguishing bit to find exactly two signed 64-bit values that appear once. All others appear exactly twice.\n\nInput\nn, then n signed 64-bit integers. The two singleton values are distinct.\n\nOutput\nPrint the singleton values in increasing signed order.\n\nConstraints\n2 ≤ n ≤ 200000 and n is even.",
+  "samples": [
+    {
+      "input": "6\n4 -1 8 4 0 8\n",
+      "output": "-1 0\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "2",
+      "0"
+    ],
+    [
+      "42",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "XOR cancels pairs, leaving the XOR of the two singletons. Isolate a set bit with unsigned arithmetic to avoid signed overflow on the sign bit. The singletons differ on that bit, and each pair stays together in one group, so XOR within each group recovers its singleton. Compare the recovered values as signed integers. O(n) time and O(1) auxiliary space beyond the stored input.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main(){\n    ios::sync_with_stdio(false);cin.tie(nullptr);\n    int n;cin>>n;\n    vector<int64_t>a(n);\n    uint64_t both=0;\n    for(auto& x:a){cin>>x;both^=uint64_t(x);}\n    uint64_t bit=both&-both,l=0,r=0;\n    for(int64_t x:a)(uint64_t(x)&bit?l:r)^=uint64_t(x);\n    int64_t x=bit_cast<int64_t>(l),y=bit_cast<int64_t>(r);\n    cout<<min(x,y)<<' '<<max(x,y)<<'\\n';\n}\n~~~"
+}

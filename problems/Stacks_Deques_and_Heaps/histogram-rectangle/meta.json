@@ -1,0 +1,50 @@
+{
+  "title": "Histogram Rectangle",
+  "difficulty": "medium",
+  "statement": "Use a monotonic stack to find the largest axis-aligned rectangle under a histogram of unit-width bars.\n\nInput\nRead n followed by n heights.\n\nOutput\nPrint the maximum area.\n\nConstraints\n1 ≤ n ≤ 200000. Heights lie in [0,10⁹].",
+  "samples": [
+    {
+      "input": "6\n2 1 5 6 2 3\n",
+      "output": "10\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "1",
+      "1"
+    ],
+    [
+      "71",
+      "5"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "4"
+    ],
+    [
+      "200000",
+      "5"
+    ]
+  ],
+  "editorial": "Track each unresolved height and the earliest index where it can start. A shorter bar closes all taller stack entries at the previous index. Carry the popped start to the new height so it can extend left. Keep equal heights in one entry using the earliest start. A zero-height sentinel flushes the stack. Width times height needs long long. Time and space are O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; cin >> n;\n    vector<pair<long long,int>> stack;\n    long long best = 0;\n    for (int i = 0; i <= n; ++i) {\n        long long h = 0;\n        if (i < n) cin >> h;\n        int start = i;\n        while (!stack.empty() && stack.back().first > h) {\n            auto [height, left] = stack.back();\n            stack.pop_back();\n            best = max(best, height * (i - left));\n            start = left;\n        }\n        if (stack.empty() || stack.back().first < h) stack.emplace_back(h, start);\n    }\n    cout << best << '\\n';\n}\n~~~"
+}

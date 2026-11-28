@@ -1,0 +1,44 @@
+{
+  "title": "LCS with Rolling Rows",
+  "difficulty": "medium",
+  "statement": "Compute the longest common subsequence length using space linear in the shorter string.\n\nInput\nTwo nonempty lowercase strings a and b.\n\nOutput\nPrint the LCS length.\n\nConstraints\n1 ≤ |a|,|b| ≤ 4000.",
+  "samples": [
+    {
+      "input": "abcbdab\nbdcaba\n",
+      "output": "4\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0",
+      "1"
+    ],
+    [
+      "43",
+      "1",
+      "71"
+    ],
+    [
+      "4000",
+      "2",
+      "4000"
+    ],
+    [
+      "4000",
+      "3",
+      "4000"
+    ],
+    [
+      "4000",
+      "4",
+      "3999"
+    ],
+    [
+      "4000",
+      "2",
+      "1"
+    ]
+  ],
+  "editorial": "The state for two prefixes is one plus the diagonal value if the last characters match. Otherwise skip one last character and take the better adjacent state. Keep only the previous and current rows because earlier rows are no longer needed. Use the shorter string for columns. Time O(|a||b|), space O(min(|a|,|b|)).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    string a,b; cin>>a>>b;\n    if(a.size()<b.size()) swap(a,b);\n    vector<int>prev(b.size()+1),cur(b.size()+1);\n    for(char c:a) {\n        for(int j=1;j<=int(b.size());++j)\n            cur[j]=c==b[j-1]?prev[j-1]+1:max(prev[j],cur[j-1]);\n        swap(prev,cur);\n    }\n    cout<<prev.back()<<'\\n';\n}\n~~~"
+}

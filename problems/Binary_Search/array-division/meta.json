@@ -1,0 +1,34 @@
+{
+  "title": "Array Division",
+  "difficulty": "medium",
+  "statement": "Use binary search on the answer to divide a nonnegative array into exactly k nonempty contiguous parts, minimizing the largest part sum.\n\nInput\nn k, followed by n nonnegative integers.\n\nOutput\nPrint the optimal largest sum.\n\nConstraints\n1 ≤ k ≤ n ≤ 200000. Each value is at most 10⁹.",
+  "samples": [
+    {
+      "input": "5 3\n2 4 7 3 5\n",
+      "output": "8\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "12",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "For a candidate limit, extend each part as far as possible without exceeding it. This leaves the longest possible prefix covered after any fixed number of parts, so the scan minimizes the number of parts. If that minimum is at most k, split further to reach exactly k. Nonnegative values guarantee splitting does not raise any sum. Search between max(a) and sum(a). Time O(n log(sum(a)+1)), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,k; cin>>n>>k;\n    vector<long long>a(n);\n    for (auto& x:a) cin>>x;\n    long long lo=*max_element(a.begin(),a.end()),hi=accumulate(a.begin(),a.end(),0LL);\n    while (lo<hi) {\n        long long mid=lo+(hi-lo)/2,sum=0;\n        int parts=1;\n        for (long long x:a) {\n            if (sum+x>mid) { ++parts; sum=0; }\n            sum+=x;\n        }\n        if (parts<=k) hi=mid;\n        else lo=mid+1;\n    }\n    cout<<lo<<'\\n';\n}\n~~~"
+}

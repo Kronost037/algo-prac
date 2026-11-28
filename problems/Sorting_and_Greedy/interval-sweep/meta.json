@@ -1,0 +1,34 @@
+{
+  "title": "Interval Sweep",
+  "difficulty": "medium",
+  "statement": "Sweep half-open integer intervals to find the peak number of overlapping intervals and the total length covered by at least one interval.\n\nInput\nn, followed by n lines of start end.\n\nOutput\nPrint peak overlap and covered length.\n\nConstraints\n1 ≤ n ≤ 200000. Each integer interval obeys −10⁹ ≤ start < end ≤ 10⁹.",
+  "samples": [
+    {
+      "input": "4\n-1 3\n1 2\n3 6\n10 12\n",
+      "output": "2 9\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "45",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Add +1 at each start and −1 at each end. Between two successive distinct coordinates, the active count stays constant. Measure that span using the previous count, then apply all events at its end as one group. Grouping ensures touching intervals never overlap at a single endpoint. Time O(n log n), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; cin>>n;\n    vector<pair<int,int>> events;\n    while (n--) {\n        int l,r; cin>>l>>r;\n        events.emplace_back(l,1);\n        events.emplace_back(r,-1);\n    }\n    sort(events.begin(),events.end());\n    int peak=0,active=0,last=events.front().first;\n    long long covered=0;\n    for (int i=0;i<int(events.size());) {\n        int x=events[i].first;\n        if (active) covered+=(long long)x-last;\n        do { active+=events[i++].second; }\n        while (i<int(events.size()) && events[i].first==x);\n        peak=max(peak,active);\n        last=x;\n    }\n    cout<<peak<<' '<<covered<<'\\n';\n}\n~~~"
+}

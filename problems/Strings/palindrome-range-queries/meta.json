@@ -1,0 +1,38 @@
+{
+  "title": "Palindrome Range Queries",
+  "difficulty": "hard",
+  "statement": "Compute odd and even Manacher radii, then answer whether each queried substring is a palindrome in O(1).\n\nInput\nOne lowercase English string, then q and q inclusive 1-based ranges L R.\n\nOutput\nPrint YES or NO for each query.\n\nConstraints\n1 ≤ string length,q ≤ 200000. 1 ≤ L ≤ R ≤ length.",
+  "samples": [
+    {
+      "input": "abacabba\n4\n1 3\n5 8\n3 6\n5 5\n",
+      "output": "YES\nYES\nNO\nYES\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "43",
+      "1"
+    ],
+    [
+      "47",
+      "4"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "4"
+    ]
+  ],
+  "editorial": "Keep the inclusive endpoints of the rightmost palindrome for each parity. For a center inside that interval, mirror its center and initialize its radius to the smaller of the mirror radius and the right-boundary allowance. Extend with explicit character comparisons. This can cross the right boundary only O(n) times in total. For odd length use its middle character. For even length use the right-hand middle index, whose even radius counts matched pairs. Time O(n+q), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nvector<int> radii(const string& s,bool even) {\n    int n=s.size(),l=0,r=-1;\n    vector<int>d(n);\n    for (int i=0;i<n;++i) {\n        int k=i>r?(even?0:1):min(d[l+r-i+even],r-i+1);\n        while (i-k-(even?1:0)>=0 && i+k<n && s[i-k-(even?1:0)]==s[i+k]) ++k;\n        d[i]=k;\n        if (i+k-1>r) {\n            l=i-k+(even?0:1);\n            r=i+k-1;\n        }\n    }\n    return d;\n}\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    string s; int q; cin>>s>>q;\n    auto odd=radii(s,false),even=radii(s,true);\n    while (q--) {\n        int l,r; cin>>l>>r; --l; --r;\n        int length=r-l+1,center=l+length/2;\n        bool yes=length%2?odd[center]>=length/2+1:even[center]>=length/2;\n        cout<<(yes?\"YES\\n\":\"NO\\n\");\n    }\n}\n~~~"
+}

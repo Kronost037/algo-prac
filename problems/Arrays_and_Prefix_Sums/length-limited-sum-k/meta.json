@@ -1,0 +1,56 @@
+{
+  "title": "Length-Limited Sum-K Subarrays",
+  "difficulty": "medium",
+  "statement": "Use prefix sums and a frequency table to count subarrays with sum K whose length is between L and R, inclusive.\n\nInput\nRead n L R K, then n signed integers.\n\nOutput\nPrint the number of qualifying subarrays.\n\nConstraints\n1 ≤ L ≤ R ≤ n ≤ 200000. Every element has absolute value at most 10⁹. |K| ≤ 10¹⁴.",
+  "samples": [
+    {
+      "input": "5 2 3 0\n1 -1 0 -1 1\n",
+      "output": "4\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "1",
+      "1",
+      "0"
+    ],
+    [
+      "41",
+      "3",
+      "7",
+      "3"
+    ],
+    [
+      "99",
+      "99",
+      "99",
+      "1"
+    ],
+    [
+      "200000",
+      "1",
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "2",
+      "177777",
+      "1"
+    ],
+    [
+      "200000",
+      "1",
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "1234",
+      "1234",
+      "3"
+    ]
+  ],
+  "editorial": "For an end prefix index r, the permitted earlier prefixes have indices from r−R through r−L, clipped at zero. Insert r−L and remove r−R−1 when each becomes valid, then count prefixes equal to prefix[r]−K. Equal prefixes count separately. For deterministic bounds, compress all prefix values and precompute each prefix’s rank. Update a flat frequency array by rank, and use binary search to locate the requested prefix value. Total time is O(n log n), and extra space is O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n, low, high; long long target;\n    cin >> n >> low >> high >> target;\n    vector<long long> prefix(n + 1);\n    for (int i = 1; i <= n; ++i) {\n        long long x; cin >> x;\n        prefix[i] = prefix[i - 1] + x;\n    }\n    auto keys = prefix;\n    sort(keys.begin(), keys.end());\n    keys.erase(unique(keys.begin(), keys.end()), keys.end());\n    vector<int> rank(n + 1), count(keys.size());\n    for (int i = 0; i <= n; ++i)\n        rank[i] = lower_bound(keys.begin(), keys.end(), prefix[i]) - keys.begin();\n    long long answer = 0;\n    for (int r = low; r <= n; ++r) {\n        ++count[rank[r - low]];\n        if (r > high) --count[rank[r - high - 1]];\n        auto it = lower_bound(keys.begin(), keys.end(), prefix[r] - target);\n        if (it != keys.end() && *it == prefix[r] - target) answer += count[it - keys.begin()];\n    }\n    cout << answer << '\\n';\n}\n~~~"
+}

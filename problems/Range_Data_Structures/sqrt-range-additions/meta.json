@@ -1,0 +1,30 @@
+{
+  "title": "Square-Root Range Additions",
+  "difficulty": "medium",
+  "statement": "Use square-root decomposition with per-block offsets to support range additions and point reads.\n\nInput\nn q, then n initial values. ADD L R x adds x to all indices in an inclusive 1-based range. GET i reads one value.\n\nOutput\nPrint the value for each GET.\n\nConstraints\n1 ≤ n ≤ 200000. Each value has absolute value at most 10⁹. 1 ≤ q ≤ 200000. Each addition has absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "5 5\n1 2 3 4 5\nADD 2 5 4\nGET 3\nADD 1 3 -2\nGET 3\nGET 5\n",
+      "output": "7\n5\n9\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "61",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "199999",
+      "3"
+    ]
+  ],
+  "editorial": "Split storage into blocks of size about √n. For a complete block change its offset, and for either partial boundary block change the affected individual entries. A read adds the individual value and its block offset. An update touches O(√n) entries or blocks, a read O(1), and space is O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,q; cin>>n>>q;\n    int size=max(1,int(sqrt(n)));\n    vector<long long>a(n),offset((n+size-1)/size);\n    for(auto& x:a) cin>>x;\n    while(q--) {\n        string op;\n        int l; cin>>op>>l; --l;\n        if(op==\"GET\") cout<<a[l]+offset[l/size]<<'\\n';\n        else {\n            int r; long long x; cin>>r>>x; --r;\n            while(l<=r && l%size) a[l++]+=x;\n            while(l+size-1<=r) { offset[l/size]+=x; l+=size; }\n            while(l<=r) a[l++]+=x;\n        }\n    }\n}\n~~~"
+}

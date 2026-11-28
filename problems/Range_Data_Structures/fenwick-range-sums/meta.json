@@ -1,0 +1,34 @@
+{
+  "title": "Fenwick Range Sums",
+  "difficulty": "easy",
+  "statement": "Implement a Fenwick tree for point additions and inclusive range sums.\n\nInput\nn q, the n initial values, then q operations. ADD i x adds x to the 1-based index i. SUM L R queries 1 ≤ L ≤ R ≤ n.\n\nOutput\nPrint the answer to each SUM in input order.\n\nConstraints\n1 ≤ n,q ≤ 200000. Initial values and x have absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "4 5\n2 -1 4 3\nSUM 1 4\nADD 2 7\nSUM 2 3\nADD 4 -5\nSUM 4 4\n",
+      "output": "8\n10\n-2\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "73",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "1"
+    ]
+  ],
+  "editorial": "At index i store the sum of the block of length i & −i ending at i. A prefix query removes its final block repeatedly by subtracting that low bit. A point update walks through every containing block by adding the low bit. Take the difference of two prefixes for a range. Initialization by point updates costs O(n log n), each operation O(log n), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nclass Fenwick {\n    vector<long long> tree;\npublic:\n    explicit Fenwick(int n):tree(n+1){}\n    void add(int i,long long x) {\n        for (;i<int(tree.size());i+=i&-i) tree[i]+=x;\n    }\n    long long prefix(int i) const {\n        long long sum=0;\n        for (;i>0;i-=i&-i) sum+=tree[i];\n        return sum;\n    }\n};\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,q; cin>>n>>q;\n    Fenwick tree(n);\n    for (int i=1;i<=n;++i) {\n        long long x; cin>>x;\n        tree.add(i,x);\n    }\n    while (q--) {\n        string op; int i; long long x; cin>>op>>i>>x;\n        if (op==\"ADD\") tree.add(i,x);\n        else cout<<tree.prefix(x)-tree.prefix(i-1)<<'\\n';\n    }\n}\n~~~"
+}
