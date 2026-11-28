@@ -1,0 +1,44 @@
+{
+  "title": "Factory Machines",
+  "difficulty": "medium",
+  "statement": "Binary-search the minimum whole number of seconds needed for the machines to finish at least T items. A machine with period p finishes an item at times p, 2p, 3p, and so on.\n\nInput\nRead n T, followed by n machine periods.\n\nOutput\nPrint the earliest feasible time.\n\nConstraints\n1 ≤ n ≤ 200000, 1 ≤ T ≤ 10⁹, and 1 ≤ p ≤ 10⁹.",
+  "samples": [
+    {
+      "input": "3 7\n3 2 5\n",
+      "output": "8\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "1",
+      "0"
+    ],
+    [
+      "1",
+      "1000000000",
+      "0"
+    ],
+    [
+      "13",
+      "77",
+      "2"
+    ],
+    [
+      "200000",
+      "1000000000",
+      "0"
+    ],
+    [
+      "200000",
+      "1",
+      "1"
+    ],
+    [
+      "200000",
+      "1000000000",
+      "3"
+    ]
+  ],
+  "editorial": "At time x, a machine has finished floor(x/p) items. Feasibility is monotone, so search for the first feasible time. The fastest machine alone gives an upper bound of min(p) × T. Stop adding once the total reaches T to avoid accumulating a very large sum. Time O(n log(min(p) × T)), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; long long target; cin >> n >> target;\n    vector<long long> period(n);\n    for (auto& p : period) cin >> p;\n    long long l = 1, r = *min_element(period.begin(), period.end()) * target;\n    while (l < r) {\n        long long mid = l + (r - l) / 2, made = 0;\n        for (long long p : period) {\n            made += mid / p;\n            if (made >= target) break;\n        }\n        if (made >= target) r = mid;\n        else l = mid + 1;\n    }\n    cout << l << '\\n';\n}\n~~~"
+}

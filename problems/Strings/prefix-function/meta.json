@@ -1,0 +1,46 @@
+{
+  "title": "Build the Prefix Function",
+  "difficulty": "medium",
+  "statement": "Build the prefix function in O(n). For each prefix of s, find the length of its longest proper prefix that is also a suffix.\n\nInput\nRead a single nonempty string s of lowercase English letters.\n\nOutput\nPrint n values in order, starting with 0 for the one-character prefix.\n\nConstraints\n1 ≤ n ≤ 200000.",
+  "samples": [
+    {
+      "input": "ababcabab\n",
+      "output": "0 0 1 2 0 1 2 3 4\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "31",
+      "1"
+    ],
+    [
+      "81",
+      "4"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "4"
+    ]
+  ],
+  "editorial": "Start position i with the best border length of s[0..i−1]. If the next character disagrees, fall back to the next longest border via pi[j−1]. Every smaller viable border is a border of the current candidate, so this chain skips only impossible lengths. On a match extend by one. Increases are at most one per position, and each fallback strictly decreases the length, so total work is O(n). The output array takes O(n) space.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    string s; cin >> s;\n    int n = s.size();\n    vector<int> pi(n);\n    for (int i = 1; i < n; ++i) {\n        int j = pi[i - 1];\n        while (j > 0 && s[i] != s[j]) j = pi[j - 1];\n        if (s[i] == s[j]) ++j;\n        pi[i] = j;\n    }\n    for (int i = 0; i < n; ++i) cout << pi[i] << (i + 1 == n ? '\\n' : ' ');\n}\n~~~"
+}

@@ -1,0 +1,49 @@
+{
+  "title": "Shortest Positive Window",
+  "difficulty": "easy",
+  "statement": "Use a sliding window to find the shortest nonempty subarray with sum at least S.\n\nInput\nRead n S followed by n integers.\n\nOutput\nPrint the minimum length of a nonempty subarray with sum at least S, or 0 if none exists.\n\nConstraints\n1 ≤ n ≤ 200000, 1 ≤ S ≤ 10¹⁵. Each value lies in [1,10⁹].",
+  "samples": [
+    {
+      "input": "6 8\n3 1 4 4 1 2\n",
+      "output": "2\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0",
+      "1"
+    ],
+    [
+      "1",
+      "0",
+      "2"
+    ],
+    [
+      "32",
+      "2",
+      "52"
+    ],
+    [
+      "200000",
+      "0",
+      "200000"
+    ],
+    [
+      "200000",
+      "1",
+      "100000000001"
+    ],
+    [
+      "200000",
+      "0",
+      "100000000000000"
+    ],
+    [
+      "200000",
+      "2",
+      "199"
+    ]
+  ],
+  "editorial": "Expand the right endpoint and add its value. While the sum reaches S, record the length and remove the leftmost value to try a shorter window. With positive values, further shrinking a window below S cannot help at the current endpoint. Each element is added and removed at most once, giving O(n) time. The stored input uses O(n) space.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; long long target; cin >> n >> target;\n    vector<long long> a(n);\n    for (auto& x : a) cin >> x;\n    long long sum = 0;\n    int l = 0, best = n + 1;\n    for (int r = 0; r < n; ++r) {\n        sum += a[r];\n        while (sum >= target) {\n            best = min(best, r - l + 1);\n            sum -= a[l++];\n        }\n    }\n    cout << (best <= n ? best : 0) << '\\n';\n}\n~~~"
+}
