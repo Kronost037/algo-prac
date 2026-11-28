@@ -1,0 +1,30 @@
+{
+  "title": "Maximum Minimum Gap",
+  "difficulty": "medium",
+  "statement": "Use binary search on the answer to place k items at distinct stalls and maximize the minimum distance between consecutive occupied stalls.\n\nInput\nn k, followed by n distinct integer coordinates in any order.\n\nOutput\nPrint the maximum achievable minimum gap.\n\nConstraints\n2 ≤ k ≤ n ≤ 200000. Coordinates have absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "5 3\n1 2 8 4 9\n",
+      "output": "3\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "2",
+      "0"
+    ],
+    [
+      "11",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Sort the stalls. To test gap d, start at the leftmost stall and always take the first stall at least d beyond the last selected one. By induction, the ith greedy placement is no farther right than the ith placement of any feasible layout. Feasibility decreases as d increases, so binary-search the last feasible d. Time O(n log n+n log D), where D is the coordinate span.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,k; cin>>n>>k;\n    vector<long long>a(n);\n    for (auto& x:a) cin>>x;\n    sort(a.begin(),a.end());\n    long long lo=0,hi=a.back()-a.front();\n    while (lo<hi) {\n        long long mid=lo+(hi-lo+1)/2,last=a.front();\n        int count=1;\n        for (long long x:a) if (x-last>=mid) {\n            last=x;\n            ++count;\n        }\n        if (count>=k) lo=mid;\n        else hi=mid-1;\n    }\n    cout<<lo<<'\\n';\n}\n~~~"
+}

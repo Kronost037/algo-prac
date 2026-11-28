@@ -1,0 +1,42 @@
+{
+  "title": "All Borders",
+  "difficulty": "medium",
+  "statement": "Use prefix-function links to list every nonempty proper border of a lowercase string. A border equals both a prefix and a suffix.\n\nInput\nOne nonempty lowercase English string s.\n\nOutput\nPrint the number of borders, then their lengths in ascending order. Print only 0 if there are none.\n\nConstraints\n1 ≤ |s| ≤ 200000.",
+  "samples": [
+    {
+      "input": "ababa\n",
+      "output": "2\n1 3\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "41",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "4"
+    ]
+  ],
+  "editorial": "Compute the prefix function in linear time. Its last value is the longest proper border. Any shorter border is also a border of that longest one, so repeatedly follow pi[length−1] until zero. The chain is decreasing, so reverse it for output. Time and space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    string s; cin>>s;\n    int n=s.size();\n    vector<int>pi(n),answers;\n    for (int i=1;i<n;++i) {\n        int j=pi[i-1];\n        while (j && s[i]!=s[j]) j=pi[j-1];\n        pi[i]=j+(s[i]==s[j]);\n    }\n    for (int k=pi.back();k;k=pi[k-1]) answers.push_back(k);\n    cout<<answers.size()<<'\\n';\n    reverse(answers.begin(),answers.end());\n    for (size_t i=0;i<answers.size();++i) cout<<answers[i]<<(i+1==answers.size()?'\\n':' ');\n}\n~~~"
+}

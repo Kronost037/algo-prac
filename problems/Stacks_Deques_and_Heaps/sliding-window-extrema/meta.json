@@ -1,0 +1,42 @@
+{
+  "title": "Sliding Window Extrema",
+  "difficulty": "easy",
+  "statement": "Use monotonic deques to output both extrema of every length-k window.\n\nInput\nn k followed by n signed values.\n\nOutput\nFor each window from left to right, print its minimum and maximum on one line.\n\nConstraints\n1 ≤ n ≤ 200000. Array values have absolute value at most 10⁹. 1 ≤ k ≤ n.",
+  "samples": [
+    {
+      "input": "5 3\n3 1 1 7 2\n",
+      "output": "1 3\n1 7\n1 7\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "4"
+    ],
+    [
+      "200000",
+      "1"
+    ]
+  ],
+  "editorial": "Keep candidate indices in increasing index order. For minima, pop larger or equal values from the back, since the new value is no larger and expires later. For maxima do the opposite. Remove expired indices from the front; the remaining fronts are the extrema. Time O(n), space O(k) besides input or output storage.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,k; cin>>n>>k;\n    deque<pair<int,int>> low,high;\n    for (int i=0;i<n;++i) {\n        int x; cin>>x;\n        if (!low.empty() && low.front().first<=i-k) low.pop_front();\n        if (!high.empty() && high.front().first<=i-k) high.pop_front();\n        while (!low.empty() && low.back().second>=x) low.pop_back();\n        while (!high.empty() && high.back().second<=x) high.pop_back();\n        low.emplace_back(i,x);\n        high.emplace_back(i,x);\n        if (i>=k-1) cout<<low.front().second<<' '<<high.front().second<<'\\n';\n    }\n}\n~~~"
+}

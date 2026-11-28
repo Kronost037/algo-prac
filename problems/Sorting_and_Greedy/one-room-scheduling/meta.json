@@ -1,0 +1,38 @@
+{
+  "title": "One-Room Scheduling",
+  "difficulty": "easy",
+  "statement": "Use earliest-finish greedy to choose the maximum number of nonoverlapping screenings. Screenings occupy half-open intervals, so touching is allowed.\n\nInput\nn and n lines of start end.\n\nOutput\nPrint the maximum number that fit in one room.\n\nConstraints\n1 ≤ n ≤ 200000. Each integer interval obeys −10⁹ ≤ start < end ≤ 10⁹.",
+  "samples": [
+    {
+      "input": "4\n1 3\n3 5\n2 4\n5 6\n",
+      "output": "3\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "40",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Choose the first compatible screening in order of finish time. In any optimum you can replace its first screening with the earliest finisher, because the replacement leaves at least as much time for every later screening. Apply the argument to what remains. Time O(n log n), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; cin>>n;\n    vector<pair<int,int>> a(n);\n    for (auto& [r,l]:a) cin>>l>>r;\n    sort(a.begin(),a.end());\n    int end=INT_MIN,answer=0;\n    for (auto [r,l]:a) if (l>=end) {\n        end=r;\n        ++answer;\n    }\n    cout<<answer<<'\\n';\n}\n~~~"
+}

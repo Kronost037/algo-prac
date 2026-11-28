@@ -1,0 +1,34 @@
+{
+  "title": "Bracket Matching",
+  "difficulty": "easy",
+  "statement": "Use a stack to identify the first mismatched closing bracket. If no closer mismatches, report the earliest opening bracket still unmatched at the end.\n\nInput\nA nonempty string using only ()[]{}.\n\nOutput\nPrint the 1-based error index, or 0 if all brackets match.\n\nConstraints\n1 ≤ length ≤ 200000.",
+  "samples": [
+    {
+      "input": "({[])]\n",
+      "output": "5\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "23",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Push opening positions. A closer can only match the most recent unmatched opener. An empty stack or a type mismatch makes the current closer the first error. If scanning finishes, the bottom of the stack contains the earliest still-unmatched opener. Time O(n), space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    string s; cin>>s;\n    vector<int> stack;\n    for (int i=0;i<int(s.size());++i) {\n        char c=s[i];\n        if (c=='('||c=='['||c=='{') stack.push_back(i);\n        else {\n            char open=c==')'?'(':c==']'?'[':'{';\n            if (stack.empty()||s[stack.back()]!=open) { cout<<i+1<<'\\n'; return 0; }\n            stack.pop_back();\n        }\n    }\n    cout<<(stack.empty()?0:stack.front()+1)<<'\\n';\n}\n~~~"
+}

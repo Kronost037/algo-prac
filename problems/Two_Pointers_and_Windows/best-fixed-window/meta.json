@@ -1,0 +1,30 @@
+{
+  "title": "Best Fixed Window",
+  "difficulty": "easy",
+  "statement": "Use a fixed-length sliding window to find the maximum sum of exactly k consecutive elements.\n\nInput\nn k, then n signed integers.\n\nOutput\nThe largest length-k sum.\n\nConstraints\n1 ≤ n ≤ 200000. Array values have absolute value at most 10⁹. 1 ≤ k ≤ n.",
+  "samples": [
+    {
+      "input": "5 3\n-4 -2 -8 -1 -3\n",
+      "output": "-11\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Sum the first k values and initialize the answer from that window, including if it is negative. When advancing, add the entering value and subtract the leaving one. Each move then takes constant time. Total time O(n), with O(n) storage for the array.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,k; cin>>n>>k;\n    vector<long long>a(n);\n    for (auto& x:a) cin>>x;\n    long long sum=accumulate(a.begin(),a.begin()+k,0LL),best=sum;\n    for (int r=k;r<n;++r) {\n        sum+=a[r]-a[r-k];\n        best=max(best,sum);\n    }\n    cout<<best<<'\\n';\n}\n~~~"
+}

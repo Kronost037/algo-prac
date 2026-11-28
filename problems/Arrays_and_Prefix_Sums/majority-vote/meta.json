@@ -1,0 +1,30 @@
+{
+  "title": "Majority Vote",
+  "difficulty": "easy",
+  "statement": "Use Boyer–Moore voting and verification to find a strict majority in O(n) time and O(1) extra space beyond input storage.\n\nInput\nn, then n integers.\n\nOutput\nPrint the value occurring more than n/2 times, or NONE.\n\nConstraints\n1 ≤ n ≤ 200000. Array values have absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "6\n7 1 7 2 7 7\n",
+      "output": "7\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Cancel pairs of different values. Each cancellation removes at most one copy of a true strict majority and cannot destroy its majority among the remaining values. A zero balance lets you pick a new candidate. Finally count the candidate in the original array because cancellation can leave a candidate even when no majority exists.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; cin>>n;\n    vector<int>a(n);\n    int candidate=0,balance=0;\n    for (int& x:a) {\n        cin>>x;\n        if (!balance) candidate=x;\n        balance+=x==candidate?1:-1;\n    }\n    if (count(a.begin(),a.end(),candidate)>n/2) cout<<candidate<<'\\n';\n    else cout<<\"NONE\\n\";\n}\n~~~"
+}

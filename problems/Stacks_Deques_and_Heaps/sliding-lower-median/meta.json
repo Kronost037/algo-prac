@@ -1,0 +1,46 @@
+{
+  "title": "Sliding Lower Median",
+  "difficulty": "hard",
+  "statement": "Maintain the lower median as values enter and expire. The lower median of k sorted values is at 1-based rank floor((k+1)/2).\n\nInput\nn k followed by n signed integers.\n\nOutput\nPrint one lower median for each length-k window in left-to-right order.\n\nConstraints\n1 ≤ n ≤ 200000. Array values have absolute value at most 10⁹. 1 ≤ k ≤ n.",
+  "samples": [
+    {
+      "input": "6 4\n8 1 1 6 3 9\n",
+      "output": "1\n1\n3\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "11",
+      "1"
+    ],
+    [
+      "12",
+      "1"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "4"
+    ]
+  ],
+  "editorial": "Use two multisets. The lower half contains ceil(window size/2) elements, and every one is at most every element in the upper half. Insert into the appropriate half and rebalance by moving boundary values. Remove exactly one copy of the expiring value, from either half containing it. Equal copies are interchangeable. The maximum of the lower half is the answer. Time O(n log(k+1)), space O(k) besides input storage.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nclass Median {\n    multiset<int> low,high;\n    void balance() {\n        size_t target=(low.size()+high.size()+1)/2;\n        while (low.size()>target) {\n            auto it=prev(low.end());\n            high.insert(*it);\n            low.erase(it);\n        }\n        while (low.size()<target) {\n            auto it=high.begin();\n            low.insert(*it);\n            high.erase(it);\n        }\n    }\npublic:\n    void add(int x) {\n        if (low.empty() || x<=*low.rbegin()) low.insert(x);\n        else high.insert(x);\n        balance();\n    }\n    void remove(int x) {\n        auto it=low.find(x);\n        if (it!=low.end()) low.erase(it);\n        else high.erase(high.find(x));\n        balance();\n    }\n    int middle() const { return *low.rbegin(); }\n};\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,k; cin>>n>>k;\n    vector<int>a(n);\n    Median median;\n    for (int i=0;i<n;++i) {\n        cin>>a[i];\n        if (i>=k) median.remove(a[i-k]);\n        median.add(a[i]);\n        if (i>=k-1) cout<<median.middle()<<'\\n';\n    }\n}\n~~~"
+}

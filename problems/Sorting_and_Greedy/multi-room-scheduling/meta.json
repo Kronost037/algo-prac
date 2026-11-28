@@ -1,0 +1,44 @@
+{
+  "title": "Multi-Room Scheduling",
+  "difficulty": "medium",
+  "statement": "Schedule as many screenings as possible in k identical rooms. Each screening occupies [start,end), so a room can be reused at its previous end time.\n\nInput\nn k, followed by n lines of start end.\n\nOutput\nPrint the maximum number of scheduled screenings.\n\nConstraints\n1 ≤ n ≤ 200000. Each integer interval obeys −10⁹ ≤ start < end ≤ 10⁹. 1 ≤ k ≤ n.",
+  "samples": [
+    {
+      "input": "5 2\n1 4\n2 3\n3 5\n4 6\n2 6\n",
+      "output": "4\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0",
+      "1"
+    ],
+    [
+      "19",
+      "1",
+      "2"
+    ],
+    [
+      "200000",
+      "0",
+      "777"
+    ],
+    [
+      "200000",
+      "1",
+      "200000"
+    ],
+    [
+      "200000",
+      "2",
+      "1"
+    ],
+    [
+      "200000",
+      "3",
+      "100000"
+    ]
+  ],
+  "editorial": "Process screenings by end time. Represent every room by its last accepted end, initially before all starts. For the current screening take the room with the largest end at most its start. This keeps earlier-ending rooms available for future screenings with earlier starts. To see the exchange, compare with any optimal schedule agreeing on prior decisions. On the chosen room, the first remaining screening conflicting with the current one, if any, ends no earlier than the current one and can be replaced. If the optimum puts the current screening on a different compatible room, swap the rooms’ future schedules: the earlier room can accommodate the chosen room’s suffix. Time O(n log n), space O(n+k).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,k; cin>>n>>k;\n    vector<pair<int,int>> a(n);\n    for (auto& [r,l]:a) cin>>l>>r;\n    sort(a.begin(),a.end());\n    multiset<int> ends;\n    for (int i=0;i<k;++i) ends.insert(INT_MIN);\n    int answer=0;\n    for (auto [r,l]:a) {\n        auto it=ends.upper_bound(l);\n        if (it==ends.begin()) continue;\n        ends.erase(prev(it));\n        ends.insert(r);\n        ++answer;\n    }\n    cout<<answer<<'\\n';\n}\n~~~"
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Circular Maximum Subarray",
+  "difficulty": "medium",
+  "statement": "Use maximum and minimum Kadane scans to find the largest sum of a nonempty cyclic segment visiting at most n elements.\n\nInput\nn, then n signed values.\n\nOutput\nThe maximum sum.\n\nConstraints\n1 ≤ n ≤ 200000. Array values have absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "5\n5 -8 2 3 4\n",
+      "output": "14\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "200000",
+      "0"
+    ],
+    [
+      "47",
+      "1"
+    ],
+    [
+      "200000",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "Any optimum either stays inside the array or wraps around. A wrapping segment is the complement of a removed nonempty contiguous segment, giving total minus the minimum segment sum. If the ordinary maximum is negative, all elements are negative and the complement of the whole array would be empty. Return the ordinary maximum in that case. Time O(n), space O(1).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; cin>>n;\n    long long top=LLONG_MIN,bottom=LLONG_MAX,total=0,hi=0,lo=0;\n    while (n--) {\n        long long x; cin>>x;\n        total+=x;\n        hi=max(x,hi+x); lo=min(x,lo+x);\n        top=max(top,hi); bottom=min(bottom,lo);\n    }\n    cout<<(top<0?top:max(top,total-bottom))<<'\\n';\n}\n~~~"
+}

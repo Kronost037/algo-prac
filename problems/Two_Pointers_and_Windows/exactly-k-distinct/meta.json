@@ -1,0 +1,34 @@
+{
+  "title": "Exactly K Distinct",
+  "difficulty": "medium",
+  "statement": "Count nonempty subarrays with exactly k distinct values using two at-most-k sliding window counts.\n\nInput\nn k, then n signed integers.\n\nOutput\nThe number of qualifying subarrays.\n\nConstraints\n1 ≤ n ≤ 200000. Array values have absolute value at most 10⁹. 1 ≤ k ≤ n.",
+  "samples": [
+    {
+      "input": "5 2\n1 2 1 2 3\n",
+      "output": "7\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "39",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "1"
+    ]
+  ],
+  "editorial": "For at most k distinct values, shrink the window until valid. Every suffix of that window ending at the same right position is valid, so add its length. Subtract atMost(k−1) from atMost(k). Compress values before using a flat frequency table. Total time O(n log n), including compression, and space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nlong long atMost(const vector<int>& a,int k) {\n    vector<int> freq(a.size());\n    int l=0,distinct=0;\n    long long count=0;\n    for (int r=0;r<int(a.size());++r) {\n        distinct+=++freq[a[r]]==1;\n        while (distinct>k) distinct-=--freq[a[l++]]==0;\n        count+=r-l+1;\n    }\n    return count;\n}\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,k; cin>>n>>k;\n    vector<int>a(n);\n    for (auto& x:a) cin>>x;\n    auto keys=a;\n    sort(keys.begin(),keys.end());\n    keys.erase(unique(keys.begin(),keys.end()),keys.end());\n    for (auto& x:a) x=lower_bound(keys.begin(),keys.end(),x)-keys.begin();\n    cout<<atMost(a,k)-atMost(a,k-1)<<'\\n';\n}\n~~~"
+}

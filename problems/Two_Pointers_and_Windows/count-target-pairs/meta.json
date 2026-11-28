@@ -1,0 +1,34 @@
+{
+  "title": "Count Target Pairs",
+  "difficulty": "easy",
+  "statement": "Sort the values and use two pointers to count pairs i < j of original indices whose values sum to K.\n\nInput\nn K, followed by n integers.\n\nOutput\nPrint the count.\n\nConstraints\n1 ≤ n ≤ 200000. Values have absolute value at most 10⁹ and |K| ≤ 3×10⁹.",
+  "samples": [
+    {
+      "input": "5 3\n0 1 1 2 2\n",
+      "output": "4\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "29",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ],
+    [
+      "200000",
+      "1"
+    ]
+  ],
+  "editorial": "Sort the values, preserving multiplicities. If a pair is too small, advance the left pointer. If too large, retreat the right pointer. For a match between different values multiply the two run lengths. If both ends are equal, all remaining pairs match. Time O(n log n), space O(n) including input.\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nlong long pairs(const vector<int>& a,int l,long long target) {\n    long long answer=0;\n    int r=int(a.size())-1;\n    while (l<r) {\n        long long sum=(long long)a[l]+a[r];\n        if (sum<target) ++l;\n        else if (sum>target) --r;\n        else if (a[l]==a[r]) {\n            long long count=r-l+1;\n            return answer+count*(count-1)/2;\n        } else {\n            int left=a[l],right=a[r],lc=0,rc=0;\n            while (l<=r && a[l]==left) { ++l; ++lc; }\n            while (r>=l && a[r]==right) { --r; ++rc; }\n            answer+=(long long)lc*rc;\n        }\n    }\n    return answer;\n}\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n; long long k; cin>>n>>k;\n    vector<int>a(n);\n    for (int& x:a) cin>>x;\n    sort(a.begin(),a.end());\n    long long answer=0;\n    answer=pairs(a,0,k);\n    cout<<answer<<'\\n';\n}\n~~~"
+}

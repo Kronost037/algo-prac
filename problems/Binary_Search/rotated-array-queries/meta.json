@@ -1,0 +1,30 @@
+{
+  "title": "Rotated Array Queries",
+  "difficulty": "medium",
+  "statement": "Find the minimum element of a cyclic rotation of a strictly increasing array, then use binary search to answer membership queries.\n\nInput\nn q, the n rotated values, then q query values.\n\nOutput\nFor each target print its original 1-based position in the given rotation, or 0 if absent.\n\nConstraints\n1 ≤ n ≤ 200000. Array values have absolute value at most 10⁹. 1 ≤ q ≤ 200000. Targets have absolute value at most 10⁹.",
+  "samples": [
+    {
+      "input": "6 4\n7 10 15 -2 1 4\n-2 10 4 8\n",
+      "output": "4\n2\n6\n0\n"
+    }
+  ],
+  "generatorArgs": [
+    [
+      "1",
+      "0"
+    ],
+    [
+      "37",
+      "1"
+    ],
+    [
+      "200000",
+      "2"
+    ],
+    [
+      "200000",
+      "3"
+    ]
+  ],
+  "editorial": "While searching for the minimum, compare the midpoint with the right endpoint. If the midpoint is larger, the pivot lies strictly to its right. Otherwise the pivot is at or left of the midpoint. The virtual array a[(pivot+i)%n] is increasing, so search it and translate the index back. Time O((q+1) log n) after reading, space O(n).\n~~~\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false); cin.tie(nullptr);\n    int n,q; cin>>n>>q;\n    vector<int>a(n);\n    for (auto& x:a) cin>>x;\n    int l=0,r=n-1;\n    while (l<r) {\n        int m=l+(r-l)/2;\n        if (a[m]>a[r]) l=m+1;\n        else r=m;\n    }\n    int pivot=l;\n    while (q--) {\n        int x; cin>>x;\n        l=0; r=n;\n        while (l<r) {\n            int m=l+(r-l)/2;\n            if (a[(pivot+m)%n]<x) l=m+1;\n            else r=m;\n        }\n        int at=(pivot+l)%n;\n        cout<<(l<n && a[at]==x?at+1:0)<<'\\n';\n    }\n}\n~~~"
+}
